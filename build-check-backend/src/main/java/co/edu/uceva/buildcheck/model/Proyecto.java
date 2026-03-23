@@ -1,8 +1,4 @@
-package main.java.co.edu.uceva.buildcheck.model;
-
-import java.lang.annotation.Inherited;
-
-import javax.annotation.processing.Generated;
+package co.edu.uceva.buildcheck.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -19,7 +15,7 @@ public class Proyecto {
     private Long id;
 
     @NotEmpty(message = "El nombre no puede estar vacio")
-    @Size(min = 2, max = 20, message = "El tamaño del nombre debe estar entre 2 y 20 caracteres")
+    @Size(min = 2, max = 200, message = "El tamaño del nombre debe estar entre 2 y 20 caracteres")
     @Column(nullable = false)
     private String nombre;
 

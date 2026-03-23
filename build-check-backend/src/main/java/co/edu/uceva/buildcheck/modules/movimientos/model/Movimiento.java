@@ -11,18 +11,22 @@ import java.util.Date;
 @Table(name = "movimientos")
 public class Movimiento {
 
+    //ID
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //Movimiento
     @NotEmpty(message = "El tipo de movimiento no puede estar vacio")
     @Column(nullable = false)
     private String tipoMovimiento; // ENTRADA o SALIDA
 
+    // Cantidad
     @NotNull(message = "La cantidad es obligatoria")
     @DecimalMin(value = "0.1", message = "La cantidad debe ser mayor a 0")
     private Double cantidad;
 
+    // Fecha
     @Temporal(TemporalType.TIMESTAMP)
     private Date fecha;
 

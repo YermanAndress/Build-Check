@@ -17,7 +17,7 @@ public class Proyecto {
     @Column(nullable = false)
     private String nombre;
 
-    @Size(max = 255, message = "La descripcion no puede tener mas de 255 caracteres")
+    @Size(max = 300, message = "La descripcion no puede tener mas de 255 caracteres")
     private String descripcion;
 
     @NotEmpty(message = "La ubicacion no puede estar vacia")

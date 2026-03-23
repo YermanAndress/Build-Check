@@ -1,4 +1,4 @@
-package co.edu.uceva.buildcheck.exceptions;
+package co.edu.uceva.buildcheck.modules.proyectos.exception;
 
 public class NoHayProyectosException extends RuntimeException{
     public NoHayProyectosException() {

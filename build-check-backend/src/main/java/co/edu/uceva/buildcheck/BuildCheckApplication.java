@@ -8,5 +8,4 @@ public class BuildCheckApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BuildCheckApplication.class, args);
 	}
-
 }

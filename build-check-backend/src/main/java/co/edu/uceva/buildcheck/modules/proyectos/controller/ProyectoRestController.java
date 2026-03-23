@@ -1,10 +1,10 @@
-package co.edu.uceva.buildcheck.controller;
+package co.edu.uceva.buildcheck.modules.proyectos.controller;
 
-import co.edu.uceva.buildcheck.exceptions.NoHayProyectosException;
-import co.edu.uceva.buildcheck.exceptions.ProyectoNoEncontradoException;
-import co.edu.uceva.buildcheck.model.Proyecto;
-import co.edu.uceva.buildcheck.service.IProyectoService;
-import co.edu.uceva.buildcheck.exceptions.ValidationException;
+import co.edu.uceva.buildcheck.modules.proyectos.exception.NoHayProyectosException;
+import co.edu.uceva.buildcheck.modules.proyectos.exception.ProyectoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.proyectos.exception.ValidationException;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.service.IProyectoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -4,14 +4,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice
-public class GlobalExceptionHandler {
+@Order(1)
+@RestControllerAdvice (assignableTypes = co.edu.uceva.buildcheck.modules.proyectos.controller.ProyectoRestController.class)
+public class ProyectosGlobalExceptionHandler {
     private static final String ERROR = "error";
     private static final String MENSAJE = "mensaje";
     private static final String PROYECTOS = "proyectos";
@@ -33,14 +35,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
     
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex){
-        Map<String, Object> response = new HashMap<>();
-        response.put(ERROR, "Error inesperado: " + ex.getMessage());
-        response.put(STATUS, HttpStatus.INTERNAL_SERVER_ERROR.value());
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, Object>> handleDataAccessException(DataAccessException ex){
         Map<String, Object> response = new HashMap<>();
@@ -60,5 +54,22 @@ public class GlobalExceptionHandler {
                 .toList();
         response.put(ERROR, errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(NoHayProyectosException.class)
+    public ResponseEntity<Map<String, Object>> handleNoHayProyectos(NoHayProyectosException ex){
+    Map<String, Object> response = new HashMap<>();
+    response.put("mensaje", ex.getMessage());
+    response.put("proyectos", null);
+    response.put("status", HttpStatus.OK.value());
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex){
+    Map<String, Object> response = new HashMap<>();
+    response.put(ERROR, "Error inesperado: " + ex.getMessage());
+    response.put(STATUS, HttpStatus.INTERNAL_SERVER_ERROR.value());
+    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

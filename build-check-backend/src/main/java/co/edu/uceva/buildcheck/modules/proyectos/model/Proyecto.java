@@ -2,13 +2,11 @@ package co.edu.uceva.buildcheck.modules.proyectos.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.Data;
 
 @Entity
-@Getter
-@Setter
+@Data
+@Table(name = "proyectos")
 public class Proyecto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

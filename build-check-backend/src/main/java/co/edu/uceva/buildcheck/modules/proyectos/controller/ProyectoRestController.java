@@ -1,10 +1,10 @@
-package co.edu.uceva.buildcheck.controller;
+package co.edu.uceva.buildcheck.modules.proyectos.controller;
 
-import co.edu.uceva.buildcheck.exceptions.NoHayProyectosException;
-import co.edu.uceva.buildcheck.exceptions.ProyectoNoEncontradoException;
-import co.edu.uceva.buildcheck.model.Proyecto;
-import co.edu.uceva.buildcheck.service.IProyectoService;
-import co.edu.uceva.buildcheck.exceptions.ValidationException;
+import co.edu.uceva.buildcheck.modules.proyectos.exceptions.NoHayProyectosException;
+import co.edu.uceva.buildcheck.modules.proyectos.exceptions.ProyectoNoEncontadoException;
+import co.edu.uceva.buildcheck.modules.proyectos.exceptions.ValidationException;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.service.IProyectoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +63,7 @@ public class ProyectoRestController {
     @GetMapping("/proyectos/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id){
         Proyecto proyecto = proyectoService.findById(id)
-                .orElseThrow(() -> new ProyectoNoEncontradoException(id));      
+                .orElseThrow(() -> new ProyectoNoEncontadoException(id));      
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El proyecto ha sido encontrado con exito");
         response.put(PROYECTO, proyecto);
@@ -79,7 +79,7 @@ public class ProyectoRestController {
             throw new ValidationException(result);
         }
         proyectoService.findById(id)
-                .orElseThrow(() -> new ProyectoNoEncontradoException(id));
+                .orElseThrow(() -> new ProyectoNoEncontadoException(id));
         proyecto.setId(id);        
         Map<String, Object> response = new HashMap<>();
         Proyecto proyectoActualizado = proyectoService.update(proyecto);
@@ -94,7 +94,7 @@ public class ProyectoRestController {
     @DeleteMapping("/proyectos/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id){
         Proyecto proyecto = proyectoService.findById(id)
-            .orElseThrow(() -> new ProyectoNoEncontradoException(id));
+            .orElseThrow(() -> new ProyectoNoEncontadoException(id));
         proyectoService.delete(proyecto);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El proyecto ha sido eliminado con exito");

@@ -1,8 +1,9 @@
-package co.edu.uceva.buildcheck.service;
+package co.edu.uceva.buildcheck.modules.proyectos.service;
 
-import co.edu.uceva.buildcheck.model.Proyecto;
 import java.util.List;
 import java.util.Optional;
+
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 
 public interface IProyectoService {
     Proyecto save(Proyecto proyecto);

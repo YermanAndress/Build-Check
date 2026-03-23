@@ -1,4 +1,4 @@
-package co.edu.uceva.buildcheck.model;
+package co.edu.uceva.buildcheck.modules.proyectos.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;

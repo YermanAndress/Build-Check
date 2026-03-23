@@ -1,4 +1,4 @@
-package co.edu.uceva.buildcheck.exceptions;
+package co.edu.uceva.buildcheck.modules.proyectos.exceptions;
 
 import org.springframework.validation.BindingResult;
 

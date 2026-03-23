@@ -1,7 +1,8 @@
-package co.edu.uceva.buildcheck.service;
+package co.edu.uceva.buildcheck.modules.proyectos.service;
 
-import co.edu.uceva.buildcheck.model.Proyecto;
-import co.edu.uceva.buildcheck.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;

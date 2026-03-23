@@ -1,4 +1,4 @@
-package co.edu.uceva.buildcheck.exceptions;
+package co.edu.uceva.buildcheck.modules.proyectos.exceptions;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +25,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @ExceptionHandler(ProyectoNoEncontradoException.class)
-    public ResponseEntity<Map<String, Object>> handleProyectoNoEncontrado(ProyectoNoEncontradoException ex){
+    @ExceptionHandler(ProyectoNoEncontadoException.class)
+    public ResponseEntity<Map<String, Object>> handleProyectoNoEncontrado(ProyectoNoEncontadoException ex){
         Map<String, Object> response = new HashMap<>();
         response.put(ERROR, ex.getMessage());
         response.put(STATUS, HttpStatus.NOT_FOUND.value());

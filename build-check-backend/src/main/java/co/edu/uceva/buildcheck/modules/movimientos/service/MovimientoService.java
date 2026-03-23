@@ -1,4 +1,4 @@
-package main.java.co.edu.uceva.buildcheck.modules.movimientos.service;
+package co.edu.uceva.buildcheck.modules.movimientos.service;
 
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;

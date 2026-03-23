@@ -1,4 +1,4 @@
-package main.java.co.edu.uceva.buildcheck.modules.movimientos.model;
+package co.edu.uceva.buildcheck.modules.movimientos.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -31,9 +31,9 @@ public class Movimiento {
     private Date fecha;
 
     // Relación con Material
-    @ManyToOne
-    @JoinColumn(name = "material_id", nullable = false)
-    private co.edu.uceva.buildcheck.modules.materiales.model.Material material;
+    //@ManyToOne
+    //@JoinColumn(name = "material_id", nullable = false)
+    //private co.edu.uceva.buildcheck.modules.materiales.model.Material material;
 
     @Column(name = "usuario_id")
     private Long usuarioId;

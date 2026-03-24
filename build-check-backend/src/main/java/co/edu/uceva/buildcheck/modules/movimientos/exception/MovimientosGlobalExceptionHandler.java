@@ -4,6 +4,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import co.edu.uceva.buildcheck.modules.movimientos.controller.MovimientoController;
+
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
@@ -11,8 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-@RestControllerAdvice
-public class GlobalExceptionHandler {
+@Order(2)
+@RestControllerAdvice(assignableTypes = MovimientoController.class)
+public class MovimientosGlobalExceptionHandler {
 
     private static final String ERROR = "error";
     private static final String STATUS = "status";

@@ -1,15 +1,17 @@
-# IDEs
-.idea/
-.vscode/
-*.iml
-*.iws
-*.ipr
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
 
-# OS
-.DS_Store
-Thumbs.db
+# Spring Boot
+.mvn/
+mvnw
+mvnw.cmd
+application-local.properties
 
-# Logs y temporales
-*.log
-*.tmp
-.history/
+# Docker local
+.docker/
+
+.env

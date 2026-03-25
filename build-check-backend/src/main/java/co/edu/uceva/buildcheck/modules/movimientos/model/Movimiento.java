@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Data
@@ -27,8 +27,8 @@ public class Movimiento {
     private Double cantidad;
 
     // Fecha
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date fecha;
+    @NotNull(message = "La fecha no puede estar vacia")
+    private LocalDate fecha;
 
     // Relación con Material
     //@ManyToOne

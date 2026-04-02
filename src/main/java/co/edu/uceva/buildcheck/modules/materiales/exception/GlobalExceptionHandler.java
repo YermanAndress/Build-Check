@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final String ERROR = "error";
@@ -27,7 +26,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    // 2. Captura errores de base de datos (ej: intentar borrar un material usado en otra tabla)
+    // 2. Captura errores de base de datos (ej: intentar borrar un material usado en
+    // otra tabla)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataError(Exception ex) {
         Map<String, Object> response = new HashMap<>();
@@ -48,12 +48,13 @@ public class GlobalExceptionHandler {
 
     // Captura los errores de las validaciones (@Valid, @NotEmpty, etc.)
     @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(org.springframework.web.bind.MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
+            org.springframework.web.bind.MethodArgumentNotValidException ex) {
         Map<String, Object> response = new HashMap<>();
-        
+
         // Extraemos el primer error de validación que encuentre
         String errorMessage = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
-        
+
         response.put(ERROR, "Error de validación");
         response.put(MENSAJE, errorMessage);
         response.put(STATUS, HttpStatus.BAD_REQUEST.value());

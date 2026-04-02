@@ -19,7 +19,7 @@ import java.util.HashMap;
 public class FacturaController {
 
     private final FacturaService facturaService;
-    
+
     private static final String MENSAJE = "mensaje";
     private static final String FACTURA = "factura";
     private static final String FACTURAS = "facturas";
@@ -46,11 +46,11 @@ public class FacturaController {
     public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Factura factura) {
         Factura nuevoFactura = facturaService.save(factura);
         Map<String, Object> response = new HashMap<>();
-        response.put(MENSAJE, "El factura ha sido creado con éxito!");
+        response.put(MENSAJE, "La factura ha sido creado con éxito!");
         response.put(FACTURA, nuevoFactura);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
+
     /**
      * Obtener una factura por su ID
      */
@@ -71,7 +71,7 @@ public class FacturaController {
     public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Factura factura) {
         facturaService.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
-        
+
         factura.setId(id);
         Factura facturaActualizado = facturaService.update(factura);
         Map<String, Object> response = new HashMap<>();
@@ -86,8 +86,8 @@ public class FacturaController {
     @DeleteMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Factura factura = facturaService.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
-            
+                .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
+
         facturaService.delete(factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La Factura Ha sido eliminado con exito");

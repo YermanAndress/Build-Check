@@ -19,7 +19,7 @@ import java.util.HashMap;
 public class MaterialController {
 
     private final MaterialService materialService;
-    
+
     private static final String MENSAJE = "mensaje";
     private static final String MATERIAL = "material";
     private static final String MATERIALES = "materiales";
@@ -50,7 +50,7 @@ public class MaterialController {
         response.put(MATERIAL, nuevoMaterial);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
+
     /**
      * Obtener un material por su ID
      */
@@ -71,10 +71,10 @@ public class MaterialController {
     public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Material material) {
         materialService.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
-        
+
         material.setId(id); // Aseguramos que se actualice el ID correcto
         Material materialActualizado = materialService.update(material);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El material ha sido actualizado con éxito!");
         response.put(MATERIAL, materialActualizado);
@@ -87,8 +87,8 @@ public class MaterialController {
     @DeleteMapping("/materiales/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Material material = materialService.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
-            
+                .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
+
         materialService.delete(material);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El Material Ha sido eliminado con éxito!");

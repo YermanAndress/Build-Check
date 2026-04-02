@@ -11,12 +11,12 @@ import java.time.LocalDate;
 @Table(name = "movimientos")
 public class Movimiento {
 
-    //ID
+    // ID
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //Movimiento
+    // Movimiento
     @NotEmpty(message = "El tipo de movimiento no puede estar vacio")
     @Column(nullable = false)
     private String tipoMovimiento; // ENTRADA o SALIDA
@@ -31,9 +31,9 @@ public class Movimiento {
     private LocalDate fecha;
 
     // Relación con Material
-    //@ManyToOne
-    //@JoinColumn(name = "material_id", nullable = false)
-    //private co.edu.uceva.buildcheck.modules.materiales.model.Material material;
+    // @ManyToOne
+    // @JoinColumn(name = "material_id", nullable = false)
+    // private co.edu.uceva.buildcheck.modules.materiales.model.Material material;
 
     @Column(name = "usuario_id")
     private Long usuarioId;

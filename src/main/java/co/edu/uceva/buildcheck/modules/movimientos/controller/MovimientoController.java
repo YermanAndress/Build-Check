@@ -1,5 +1,6 @@
 package co.edu.uceva.buildcheck.modules.movimientos.controller;
 
+import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 import co.edu.uceva.buildcheck.modules.movimientos.service.MovimientoService;
 
@@ -43,8 +44,8 @@ public class MovimientoController {
      * Crear un nuevo movimiento
      */
     @PostMapping("/movimientos")
-    public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Movimiento movimiento) {
-        Movimiento nuevoMovimiento = movimientoService.save(movimiento);
+    public ResponseEntity<?> save(@RequestBody MovimientoRequest movimientoRequest) {
+        Movimiento nuevoMovimiento = movimientoService.save(movimientoRequest);
 
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El movimiento ha sido creado con éxito!");
@@ -73,13 +74,8 @@ public class MovimientoController {
      * Actualizar un movimiento
      */
     @PutMapping("/movimientos/{id}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Movimiento movimiento) {
-
-        movimientoService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el movimiento con ID: " + id));
-
-        movimiento.setId(id);
-        Movimiento actualizado = movimientoService.update(movimiento);
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody MovimientoRequest movimiento) {
+        Movimiento actualizado = movimientoService.update(id, movimiento);
 
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El movimiento ha sido actualizado con éxito!");

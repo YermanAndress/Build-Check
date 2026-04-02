@@ -1,5 +1,6 @@
 package co.edu.uceva.buildcheck.modules.facturas.controller;
 
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.facturas.service.FacturaService;
 
@@ -43,7 +44,7 @@ public class FacturaController {
      * Crear una nueva factura
      */
     @PostMapping("/facturas")
-    public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Factura factura) {
+    public ResponseEntity<Map<String, Object>> save(@RequestBody FacturaRequest factura) {
         Factura nuevoFactura = facturaService.save(factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El factura ha sido creado con éxito!");

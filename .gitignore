@@ -13,5 +13,4 @@ application-local.properties
 
 # Docker local
 .docker/
-
 .env

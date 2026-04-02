@@ -1,6 +1,8 @@
 package co.edu.uceva.buildcheck.modules.materiales.service;
 
 import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
+import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
+import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMaterialRepository;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 
 import org.springframework.transaction.annotation.Transactional; 
@@ -13,9 +15,16 @@ import java.util.Optional;
 @Service
 public class MaterialService {
 
-    @Autowired
-    private MaterialRepository materialRepository;
+    private final MaterialRepository materialRepository;
+    private final MovimientoRepository movimientoRepository;
+    private final IFacturaMaterialRepository facturaMaterialRepository;
 
+    @Autowired
+    public MaterialService(MaterialRepository materialRepository, MovimientoRepository movimientoRepository, IFacturaMaterialRepository facturaMaterialRepository){
+        this.materialRepository = materialRepository;
+        this.movimientoRepository = movimientoRepository;
+        this.facturaMaterialRepository = facturaMaterialRepository;
+    }
     //  Guarda un material nuevo
     @Transactional
     public Material save(Material material) {
@@ -25,7 +34,13 @@ public class MaterialService {
     //  Elimina un material
     @Transactional
     public void delete(Material material) {
-        materialRepository.delete(material);
+        boolean tieneMovimientos = movimientoRepository.existsByMaterial(material);
+        boolean tieneFacturas = facturaMaterialRepository.existsByMaterial(material);
+        if (!tieneMovimientos && !tieneFacturas) {
+            materialRepository.delete(material);
+        }else{
+            throw new IllegalStateException("No se puede eliminar el material porque tienen movimientos o facturas asociados");
+        }
     }
 
     //  Busca un material por ID

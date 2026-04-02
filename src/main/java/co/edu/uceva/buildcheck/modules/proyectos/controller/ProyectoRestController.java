@@ -24,7 +24,7 @@ public class ProyectoRestController {
     private static final String PROYECTO = "proyecto";
     private static final String PROYECTOS = "proyectos";
 
-    public ProyectoRestController(IProyectoService proyectoService){
+    public ProyectoRestController(IProyectoService proyectoService) {
         this.proyectoService = proyectoService;
     }
 
@@ -32,7 +32,7 @@ public class ProyectoRestController {
      * Listar todos los proyectos
      */
     @GetMapping("/proyectos")
-    public ResponseEntity<Map<String, Object>> getProyectos(){
+    public ResponseEntity<Map<String, Object>> getProyectos() {
         List<Proyecto> proyectos = proyectoService.findAll();
         if (proyectos.isEmpty()) {
             throw new NoHayProyectosException();
@@ -46,7 +46,7 @@ public class ProyectoRestController {
      * Crear un nuevo proyecto
      */
     @PostMapping("/proyectos")
-    public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Proyecto proyecto, BindingResult result){
+    public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Proyecto proyecto, BindingResult result) {
         if (result.hasErrors()) {
             throw new ValidationException(result);
         }
@@ -61,9 +61,9 @@ public class ProyectoRestController {
      * Obtener un proyecto por su ID
      */
     @GetMapping("/proyectos/{id}")
-    public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id){
+    public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Proyecto proyecto = proyectoService.findById(id)
-                .orElseThrow(() -> new ProyectoNoEncontadoException(id));      
+                .orElseThrow(() -> new ProyectoNoEncontadoException(id));
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El proyecto ha sido encontrado con exito");
         response.put(PROYECTO, proyecto);
@@ -74,13 +74,14 @@ public class ProyectoRestController {
      * Actualizar un proyecto
      */
     @PutMapping("/proyectos/{id}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Proyecto proyecto, BindingResult result){
+    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Proyecto proyecto,
+            BindingResult result) {
         if (result.hasErrors()) {
             throw new ValidationException(result);
         }
         proyectoService.findById(id)
                 .orElseThrow(() -> new ProyectoNoEncontadoException(id));
-        proyecto.setId(id);        
+        proyecto.setId(id);
         Map<String, Object> response = new HashMap<>();
         Proyecto proyectoActualizado = proyectoService.update(proyecto);
         response.put(MENSAJE, "El proyecto ha sido actualizado con exito");
@@ -92,9 +93,9 @@ public class ProyectoRestController {
      * Eliminar un proyecto por su ID
      */
     @DeleteMapping("/proyectos/{id}")
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id){
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Proyecto proyecto = proyectoService.findById(id)
-            .orElseThrow(() -> new ProyectoNoEncontadoException(id));
+                .orElseThrow(() -> new ProyectoNoEncontadoException(id));
         proyectoService.delete(proyecto);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El proyecto ha sido eliminado con exito");

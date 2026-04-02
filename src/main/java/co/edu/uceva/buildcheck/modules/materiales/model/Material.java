@@ -12,16 +12,16 @@ public class Material {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message ="No puede estar vacio")
-    @Size(min=2, max=20, message="El tamaño tiene que estar entre 2 y 20")
-    @Column(nullable=false)
+    @NotEmpty(message = "No puede estar vacio")
+    @Size(min = 2, max = 20, message = "El tamaño tiene que estar entre 2 y 20")
+    @Column(nullable = false)
     private String nombre;
 
     @Size(max = 255, message = "La descripción no puede tener más de 255 caracteres")
     private String descripcion;
 
     @NotEmpty(message = "La unidad de medida no puede estar vacia")
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String unidadMedida;
 
     @DecimalMin(value = "0", message = "El precio unitario debe ser un valor positivo")

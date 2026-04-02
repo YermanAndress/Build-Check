@@ -9,40 +9,40 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ProyectoServiceImpl implements IProyectoService{
+public class ProyectoServiceImpl implements IProyectoService {
     IProyectoRepository proyectoRepository;
 
-    public ProyectoServiceImpl(IProyectoRepository proyectoRepository){
+    public ProyectoServiceImpl(IProyectoRepository proyectoRepository) {
         this.proyectoRepository = proyectoRepository;
     }
 
     @Override
     @Transactional
-    public Proyecto save(Proyecto proyecto){
+    public Proyecto save(Proyecto proyecto) {
         return proyectoRepository.save(proyecto);
     }
 
     @Override
     @Transactional
-    public void delete(Proyecto proyecto){
+    public void delete(Proyecto proyecto) {
         proyectoRepository.delete(proyecto);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Proyecto> findById(Long id){
+    public Optional<Proyecto> findById(Long id) {
         return proyectoRepository.findById(id);
     }
 
     @Override
     @Transactional
-    public Proyecto update(Proyecto proyecto){
+    public Proyecto update(Proyecto proyecto) {
         return proyectoRepository.save(proyecto);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Proyecto> findAll(){
+    public List<Proyecto> findAll() {
         return proyectoRepository.findAll();
     }
 }

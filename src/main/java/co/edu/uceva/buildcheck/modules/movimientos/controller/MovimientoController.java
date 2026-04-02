@@ -73,7 +73,8 @@ public class MovimientoController {
      * Actualizar un movimiento
      */
     @PutMapping("/movimientos/{id}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Movimiento movimiento) {
+    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id,
+            @Valid @RequestBody Movimiento movimiento) {
 
         movimientoService.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No existe el movimiento con ID: " + id));

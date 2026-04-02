@@ -51,9 +51,9 @@ public class MovimientosGlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
 
         String errorMessage = ex.getBindingResult()
-                                .getFieldErrors()
-                                .get(0)
-                                .getDefaultMessage();
+                .getFieldErrors()
+                .get(0)
+                .getDefaultMessage();
 
         response.put(ERROR, "Error de validacion");
         response.put(MENSAJE, errorMessage);

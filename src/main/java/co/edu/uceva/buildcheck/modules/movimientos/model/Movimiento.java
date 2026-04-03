@@ -7,6 +7,8 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 
@@ -41,10 +43,12 @@ public class Movimiento {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "proyecto_id", nullable = false)
+    @JsonIgnore
     private Proyecto proyecto;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "material_id", nullable = false)
+    @JsonIgnore
     private Material material;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)

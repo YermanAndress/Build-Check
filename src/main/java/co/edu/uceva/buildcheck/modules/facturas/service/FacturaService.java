@@ -5,8 +5,12 @@ import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
 import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
 import co.edu.uceva.buildcheck.modules.proveedores.repository.ProveedorRepository;
+import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.factura_material.DTO.FacturaMaterialDTO;
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMaterialRepository;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaItemRequest;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
@@ -56,7 +60,7 @@ public class FacturaService {
         if (request.getItems() != null) {
             for(FacturaItemRequest itemRequest : request.getItems()){
                 Material material = materialRepository.findById(itemRequest.getMaterialId())
-                        .orElseThrow(() -> new IllegalArgumentException("Material no encontrado con ID: " + itemRequest.getMaterialId()));
+                        .orElseThrow(() -> new RecursoNoEncontradoException("Material no encontrado con ID: " + itemRequest.getMaterialId()));
                 FacturaMaterial facturaMaterial = new FacturaMaterial();
                 facturaMaterial.setFactura(factura);
                 facturaMaterial.setMaterial(material);
@@ -78,7 +82,7 @@ public class FacturaService {
         if (!tieneMateriales) {
             facturaRepository.delete(factura);
         }else{
-            throw new IllegalStateException("No se puede eliminar la factura debido a que tiene materiales asociados");
+            throw new OperacionNoPermitidaException("No se puede eliminar la factura debido a que tiene materiales asociados");
         }
     }
 
@@ -94,8 +98,35 @@ public class FacturaService {
     *   Actualiza Una Factura Por ID
     */ 
     @Transactional
-    public Factura update(Factura factura) {
-        return facturaRepository.save(factura);
+    public Factura update(Long id, FacturaRequest factura) {
+        Factura facturaExistente = facturaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la factura con el ID: " + id));
+        facturaExistente.setNumeroFactura(factura.getNumeroFactura());
+        facturaExistente.setFecha(factura.getFecha());
+        facturaExistente.setObservaciones(factura.getObservaciones());
+        facturaExistente.setValorTotal(factura.getValorTotal());
+        facturaExistente.setProyectoId(factura.getProyectoId());
+        Proveedor proveedor = proveedorRepository.findByNombre(factura.getProveedor())
+                .orElseGet(() -> {
+                    Proveedor nuevoProveedor = new Proveedor();
+                    nuevoProveedor.setNombre(factura.getProveedor());
+                    return proveedorRepository.save(nuevoProveedor);
+                });
+        facturaExistente.setProveedor(proveedor);
+        facturaExistente.getItems().clear();
+        if (factura.getItems() != null) {
+            for(FacturaItemRequest itemRequest : factura.getItems()){
+                Material material = materialRepository.findById(itemRequest.getMaterialId())
+                        .orElseThrow(() -> new RecursoNoEncontradoException("Material no encontrado con ID: " + itemRequest.getMaterialId()));
+                FacturaMaterial facturaMaterial = new FacturaMaterial();
+                facturaMaterial.setFactura(facturaExistente);
+                facturaMaterial.setMaterial(material);
+                facturaMaterial.setCantidad(itemRequest.getCantidad());
+                facturaMaterial.setPrecioUnitario(itemRequest.getPrecioUnitario());
+                facturaExistente.getItems().add(facturaMaterial);
+            }
+        }
+        return facturaRepository.save(facturaExistente);
     }
 
 
@@ -105,5 +136,27 @@ public class FacturaService {
     @Transactional(readOnly = true)
     public List<Factura> findAll() {
         return facturaRepository.findAll();
+    }
+
+    // Mostrar los items de una factura
+    public FacturaDTO toDTO(Factura factura) {
+        FacturaDTO facturaDTO = new FacturaDTO();
+        facturaDTO.setId(factura.getId());
+        facturaDTO.setNumeroFactura(factura.getNumeroFactura());
+        facturaDTO.setFecha(factura.getFecha());
+        facturaDTO.setProveedor(factura.getProveedor().getNombre());
+        facturaDTO.setValorTotal(factura.getValorTotal());
+        facturaDTO.setProyectoId(factura.getProyectoId());
+        facturaDTO.setItems(
+            factura.getItems().stream().map(fm -> {
+                FacturaMaterialDTO fMaterialDTO = new FacturaMaterialDTO();
+                fMaterialDTO.setId(fm.getId());
+                fMaterialDTO.setCantidad(fm.getCantidad());
+                fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
+                fMaterialDTO.setFacturaId(fm.getFactura().getId());
+                return fMaterialDTO;
+            }).toList()
+        );
+        return facturaDTO;
     }
 }

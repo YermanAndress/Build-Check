@@ -2,6 +2,8 @@ package co.edu.uceva.buildcheck.modules.proyectos.service;
 
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
 
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class ProyectoServiceImpl implements IProyectoService{
         if (!movimientoRepository.existsByProyecto(proyecto)) {
             proyectoRepository.delete(proyecto);   
         }else{
-            throw new IllegalStateException("No se puede eliminar el proyecto porque tiene movimientos asociados");
+            throw new OperacionNoPermitidaException("No se puede eliminar el proyecto porque tiene movimientos asociados");
         }
     }
 
@@ -44,7 +46,14 @@ public class ProyectoServiceImpl implements IProyectoService{
     @Override
     @Transactional
     public Proyecto update(Proyecto proyecto){
-        return proyectoRepository.save(proyecto);
+        Proyecto proyectoExistente = proyectoRepository.findById(proyecto.getId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Proyecto no encontrado con ID: " + proyecto.getId()));
+        proyectoExistente.setNombre(proyecto.getNombre());
+        proyectoExistente.setDescripcion(proyecto.getDescripcion());
+        proyectoExistente.setEstado(proyecto.getEstado());
+        proyectoExistente.setPresupuesto(proyecto.getPresupuesto());
+        proyectoExistente.setUbicacion(proyecto.getUbicacion());
+        return proyectoRepository.save(proyectoExistente);
     }
 
     @Override

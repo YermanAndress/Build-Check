@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
 
@@ -40,7 +42,8 @@ public class Factura {
     @Column(name = "proyecto_id")
     private Long proyectoId;
 
-    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<FacturaMaterial> items = new ArrayList<>();
     
     @Column(name = "fecha_creacion", nullable = false, updatable = false)

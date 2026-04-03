@@ -1,5 +1,6 @@
 package co.edu.uceva.buildcheck.modules.movimientos.controller;
 
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 import co.edu.uceva.buildcheck.modules.movimientos.service.MovimientoService;
@@ -61,7 +62,7 @@ public class MovimientoController {
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
 
         Movimiento movimiento = movimientoService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el movimiento con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el movimiento con ID: " + id));
 
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El movimiento ha sido encontrado con éxito!");
@@ -91,7 +92,7 @@ public class MovimientoController {
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
 
         Movimiento movimiento = movimientoService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el movimiento con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el movimiento con ID: " + id));
 
         movimientoService.delete(movimiento);
 

@@ -11,4 +11,5 @@ import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 public interface IFacturaMaterialRepository extends JpaRepository<FacturaMaterial, Long>{
     boolean existsByMaterial(Material material);
     boolean existsByFactura(Factura factura);
+    void deleteByFactura(Factura factura);
 }

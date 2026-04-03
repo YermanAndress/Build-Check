@@ -1,5 +1,6 @@
 package co.edu.uceva.buildcheck.modules.facturas.controller;
 
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.facturas.service.FacturaService;
@@ -58,7 +59,7 @@ public class FacturaController {
     @GetMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Factura producto = facturaService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la factura con el ID: " + id));
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido encontrado con éxito!");
         response.put(FACTURA, producto);
@@ -69,12 +70,8 @@ public class FacturaController {
      * Actualizar un factura
      */
     @PutMapping("/facturas/{id}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Factura factura) {
-        facturaService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
-        
-        factura.setId(id);
-        Factura facturaActualizado = facturaService.update(factura);
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody FacturaRequest factura) {
+        Factura facturaActualizado = facturaService.update(id, factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido actualizado con exito");
         response.put(FACTURA, facturaActualizado);
@@ -87,7 +84,7 @@ public class FacturaController {
     @DeleteMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Factura factura = facturaService.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
+            .orElseThrow(() -> new RecursoNoEncontradoException("No existe la factura con el ID: " + id));
             
         facturaService.delete(factura);
         Map<String, Object> response = new HashMap<>();

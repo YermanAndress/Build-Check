@@ -40,7 +40,6 @@ public class Material {
     private Integer stockActual;
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = false)
-    @JsonIgnore
     private List<Movimiento> movimientos = new ArrayList<>();
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = false)

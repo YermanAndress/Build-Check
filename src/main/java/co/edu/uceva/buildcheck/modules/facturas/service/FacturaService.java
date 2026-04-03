@@ -15,7 +15,7 @@ import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaItemRequest;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 
-import org.springframework.transaction.annotation.Transactional; 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,8 +39,8 @@ public class FacturaService {
         this.materialRepository = materialRepository;
     }
     /**
-    *   Guarda Una Factura Nueva
-    */ 
+     * Guarda Una Factura Nueva
+     */
     @Transactional
     public Factura save(FacturaRequest request) {
         Proveedor proveedor = proveedorRepository.findByNombre(request.getProveedor())
@@ -74,8 +74,8 @@ public class FacturaService {
     }
 
     /**
-    *   Elimina Una Factura
-    */ 
+     * Elimina Una Factura
+     */
     @Transactional
     public void delete(Factura factura) {
         boolean tieneMateriales = facturaMaterialRepository.existsByFactura(factura);
@@ -87,16 +87,16 @@ public class FacturaService {
     }
 
     /**
-    *   Busca Una Factura Por ID
-    */ 
+     * Busca Una Factura Por ID
+     */
     @Transactional(readOnly = true)
     public Optional<Factura> findById(Long id) {
         return facturaRepository.findById(id);
     }
 
     /**
-    *   Actualiza Una Factura Por ID
-    */ 
+     * Actualiza Una Factura Por ID
+     */
     @Transactional
     public Factura update(Long id, FacturaRequest factura) {
         Factura facturaExistente = facturaRepository.findById(id)
@@ -129,10 +129,9 @@ public class FacturaService {
         return facturaRepository.save(facturaExistente);
     }
 
-
     /**
-    *   Lista todos los facturas
-    */ 
+     * Lista todos los facturas
+     */
     @Transactional(readOnly = true)
     public List<Factura> findAll() {
         return facturaRepository.findAll();

@@ -37,10 +37,7 @@ public class Proyecto {
     @Column(nullable = false)
     private Double presupuesto;
 
-    @Pattern(
-        regexp = "^(Planificacion|Ejecucion|Terminado)$",
-        message = "El estado debe ser Planificacion, Ejecucion o Terminado"
-    )
+    @Pattern(regexp = "^(Planificacion|Ejecucion|Terminado)$", message = "El estado debe ser Planificacion, Ejecucion o Terminado")
     private String estado;
 
     @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL, orphanRemoval = false)

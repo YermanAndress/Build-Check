@@ -23,7 +23,7 @@ public class ProyectoServiceImpl implements IProyectoService{
 
     @Override
     @Transactional
-    public Proyecto save(Proyecto proyecto){
+    public Proyecto save(Proyecto proyecto) {
         return proyectoRepository.save(proyecto);
     }
 
@@ -39,7 +39,7 @@ public class ProyectoServiceImpl implements IProyectoService{
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Proyecto> findById(Long id){
+    public Optional<Proyecto> findById(Long id) {
         return proyectoRepository.findById(id);
     }
 
@@ -58,7 +58,7 @@ public class ProyectoServiceImpl implements IProyectoService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<Proyecto> findAll(){
+    public List<Proyecto> findAll() {
         return proyectoRepository.findAll();
     }
 

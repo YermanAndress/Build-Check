@@ -8,7 +8,7 @@ import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMater
 import co.edu.uceva.buildcheck.modules.materiales.DTO.MaterialDTO;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 
-import org.springframework.transaction.annotation.Transactional; 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +34,7 @@ public class MaterialService {
         return materialRepository.save(material);
     }
 
-    //  Elimina un material
+    // Elimina un material
     @Transactional
     public void delete(Material material) {
         boolean tieneMovimientos = movimientoRepository.existsByMaterial(material);
@@ -46,13 +46,13 @@ public class MaterialService {
         }
     }
 
-    //  Busca un material por ID
+    // Busca un material por ID
     @Transactional(readOnly = true)
     public Optional<Material> findById(Long id) {
         return materialRepository.findById(id);
     }
 
-    //  Actualiza un material existente
+    // Actualiza un material existente
     @Transactional
     public Material update(Material material) {
         Material materialExistente = materialRepository.findById(material.getId())
@@ -65,7 +65,7 @@ public class MaterialService {
         return materialRepository.save(materialExistente);
     }
 
-    //  Lista todos los materiales
+    // Lista todos los materiales
     @Transactional(readOnly = true)
     public List<Material> findAll() {
         return materialRepository.findAll();

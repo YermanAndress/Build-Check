@@ -1,19 +1,19 @@
 package co.edu.uceva.buildcheck.modules.materiales.service;
 
-import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
-import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
-import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
-import co.edu.uceva.buildcheck.modules.factura_material.DTO.FacturaMaterialDTO;
 import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMaterialRepository;
+import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
+import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
+import co.edu.uceva.buildcheck.modules.factura_material.DTO.FacturaMaterialDTO;
+import co.edu.uceva.buildcheck.modules.materiales.DTO.MaterialStockBajoDTO;
 import co.edu.uceva.buildcheck.modules.materiales.DTO.MaterialDTO;
+import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 import java.util.Optional;
+import java.util.List;
 
 @Service
 public class MaterialService {
@@ -23,14 +23,31 @@ public class MaterialService {
     private final IFacturaMaterialRepository facturaMaterialRepository;
 
     @Autowired
-    public MaterialService(MaterialRepository materialRepository, MovimientoRepository movimientoRepository, IFacturaMaterialRepository facturaMaterialRepository){
+    public MaterialService(MaterialRepository materialRepository, MovimientoRepository movimientoRepository,
+            IFacturaMaterialRepository facturaMaterialRepository) {
         this.materialRepository = materialRepository;
         this.movimientoRepository = movimientoRepository;
         this.facturaMaterialRepository = facturaMaterialRepository;
     }
-    //  Guarda un material nuevo
+
+    public List<MaterialStockBajoDTO> obtenerAlertasStockBajo() {
+        List<Material> materialesCriticos = materialRepository.findMaterialesBajoStock();
+
+        // Convertimos cada Material en un DTO
+        return materialesCriticos.stream()
+                .map(m -> new MaterialStockBajoDTO(
+                        m.getId(),
+                        m.getNombre(),
+                        m.getStockActual(),
+                        m.getStockReferencia(),
+                        m.getUnidadMedida()))
+                .toList();
+    }
+
+    // Guarda un material nuevo
     @Transactional
     public Material save(Material material) {
+        material.setStockReferencia(material.getStockActual());
         return materialRepository.save(material);
     }
 
@@ -41,8 +58,9 @@ public class MaterialService {
         boolean tieneFacturas = facturaMaterialRepository.existsByMaterial(material);
         if (!tieneMovimientos && !tieneFacturas) {
             materialRepository.delete(material);
-        }else{
-            throw new OperacionNoPermitidaException("No se puede eliminar el material porque tienen movimientos o facturas asociados");
+        } else {
+            throw new OperacionNoPermitidaException(
+                    "No se puede eliminar el material porque tienen movimientos o facturas asociados");
         }
     }
 
@@ -56,7 +74,8 @@ public class MaterialService {
     @Transactional
     public Material update(Material material) {
         Material materialExistente = materialRepository.findById(material.getId())
-                .orElseThrow(() -> new IllegalArgumentException("No existe el material con el ID: " + material.getId()));
+                .orElseThrow(
+                        () -> new IllegalArgumentException("No existe el material con el ID: " + material.getId()));
         materialExistente.setNombre(material.getNombre());
         materialExistente.setDescripcion(material.getDescripcion());
         materialExistente.setUnidadMedida(material.getUnidadMedida());
@@ -82,19 +101,18 @@ public class MaterialService {
         materialDTO.setFechaCreacion(material.getFechaCreacion());
         materialDTO.setUsuarioCreador(material.getUsuarioCreador());
         materialDTO.setFacturas(
-            material.getFacturas().stream().map(fm -> {
-                FacturaMaterialDTO fMaterialDTO = new FacturaMaterialDTO();
-                fMaterialDTO.setId(fm.getId());
-                fMaterialDTO.setCantidad(fm.getCantidad());
-                fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
-                fMaterialDTO.setFacturaId(fm.getFactura().getId());
-                return fMaterialDTO;
-            }).toList()
-        );
+                material.getFacturas().stream().map(fm -> {
+                    FacturaMaterialDTO fMaterialDTO = new FacturaMaterialDTO();
+                    fMaterialDTO.setId(fm.getId());
+                    fMaterialDTO.setCantidad(fm.getCantidad());
+                    fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
+                    fMaterialDTO.setFacturaId(fm.getFactura().getId());
+                    return fMaterialDTO;
+                }).toList());
         return materialDTO;
     }
 
-    public List<MaterialDTO> findAllDTO(){
+    public List<MaterialDTO> findAllDTO() {
         return materialRepository.findAll().stream().map(this::toDTO).toList();
     }
 }

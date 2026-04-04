@@ -1,17 +1,16 @@
 package co.edu.uceva.buildcheck.modules.facturas.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.Data;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
+
+import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -45,7 +44,7 @@ public class Factura {
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<FacturaMaterial> items = new ArrayList<>();
-    
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
@@ -53,7 +52,7 @@ public class Factura {
     private String usuarioCreador;
 
     @PrePersist
-    public void prePersist(){
+    public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
         if (this.usuarioCreador == null) {
             this.usuarioCreador = "system";

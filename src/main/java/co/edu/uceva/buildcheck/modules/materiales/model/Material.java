@@ -1,15 +1,15 @@
 package co.edu.uceva.buildcheck.modules.materiales.model;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
+import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
-import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 
 @Entity
@@ -39,20 +39,22 @@ public class Material {
     @Min(value = 0, message = "El stock actual debe ser un valor positivo")
     private Integer stockActual;
 
+    private Integer stockReferencia = 0;
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
+
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Movimiento> movimientos = new ArrayList<>();
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<FacturaMaterial> facturas = new ArrayList<>();
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
-
     @Column(name = "usuario_creador", nullable = false, length = 100)
     private String usuarioCreador;
 
     @PrePersist
-    public void prePersist(){
+    public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
         if (this.usuarioCreador == null) {
             this.usuarioCreador = "system";

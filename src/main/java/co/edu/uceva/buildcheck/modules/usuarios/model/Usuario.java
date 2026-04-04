@@ -3,8 +3,8 @@ package co.edu.uceva.buildcheck.modules.usuarios.model;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity

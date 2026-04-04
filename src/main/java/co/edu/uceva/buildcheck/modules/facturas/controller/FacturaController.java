@@ -1,20 +1,20 @@
 package co.edu.uceva.buildcheck.modules.facturas.controller;
 
-import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
-import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
-import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
-import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.facturas.service.FacturaService;
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
+import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/facturas-service")
@@ -41,7 +41,7 @@ public class FacturaController {
                 .map(facturaService::toDTO)
                 .toList();
         Map<String, Object> response = new HashMap<>();
-        response.put("facturas", facturas);
+        response.put(FACTURAS, facturas);
         return ResponseEntity.ok(response);
     }
 
@@ -89,8 +89,8 @@ public class FacturaController {
     @DeleteMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Factura factura = facturaService.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
-            
+                .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
+
         facturaService.delete(factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La Factura Ha sido eliminado con exito");

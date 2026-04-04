@@ -2,7 +2,6 @@ package co.edu.uceva.buildcheck.modules.facturas.DTO;
 
 import java.time.LocalDate;
 import java.util.List;
-
 import lombok.Data;
 
 @Data

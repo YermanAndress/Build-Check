@@ -57,6 +57,14 @@ public class Movimiento {
     @Column(name = "usuario_creador", nullable = false, length = 100)
     private String usuarioCreador;
 
+    public Long getMaterialId(){
+        return material != null ? material.getId() : null;
+    }
+
+    public Long getProyectoId(){
+        return proyecto != null ? proyecto.getId() : null;
+    }
+    
     @PrePersist
     public void prePersist(){
         this.fechaCreacion = LocalDateTime.now();

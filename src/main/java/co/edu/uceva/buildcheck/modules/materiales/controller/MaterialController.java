@@ -1,5 +1,7 @@
 package co.edu.uceva.buildcheck.modules.materiales.controller;
 
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.materiales.DTO.MaterialDTO;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import co.edu.uceva.buildcheck.modules.materiales.service.MaterialService;
 
@@ -33,7 +35,7 @@ public class MaterialController {
      */
     @GetMapping("/materiales")
     public ResponseEntity<Map<String, Object>> getMaterials() {
-        List<Material> materiales = materialService.findAll();
+        List<MaterialDTO> materiales = materialService.findAllDTO();
         Map<String, Object> response = new HashMap<>();
         response.put(MATERIALES, materiales);
         return ResponseEntity.ok(response);
@@ -57,7 +59,7 @@ public class MaterialController {
     @GetMapping("/materiales/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Material producto = materialService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el material con ID: " + id));
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El material ha sido encontrado con éxito!");
         response.put(MATERIAL, producto);
@@ -70,8 +72,8 @@ public class MaterialController {
     @PutMapping("/materiales/{id}")
     public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Material material) {
         materialService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
-
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el material con ID: " + id));
+        
         material.setId(id); // Aseguramos que se actualice el ID correcto
         Material materialActualizado = materialService.update(material);
 
@@ -87,8 +89,8 @@ public class MaterialController {
     @DeleteMapping("/materiales/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Material material = materialService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
-
+            .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
+            
         materialService.delete(material);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El Material Ha sido eliminado con éxito!");

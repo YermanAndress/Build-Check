@@ -1,7 +1,13 @@
 package co.edu.uceva.buildcheck.modules.movimientos.service;
 
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.materiales.model.Material;
+import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
+import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,12 +19,32 @@ import java.util.Optional;
 @Service
 public class MovimientoService {
 
+    private final MovimientoRepository movimientoRepository;
+    private final IProyectoRepository proyectoRepository;
+    private final MaterialRepository materialRepository;
+
     @Autowired
-    private MovimientoRepository movimientoRepository;
+    public MovimientoService(MovimientoRepository movimientoRepository, IProyectoRepository proyectoRepository, MaterialRepository materialRepository) {
+        this.movimientoRepository = movimientoRepository;
+        this.proyectoRepository = proyectoRepository;
+        this.materialRepository = materialRepository;
+    }
 
     @Transactional
-    public Movimiento save(Movimiento movimiento) {
-        return movimientoRepository.save(movimiento);
+    public Movimiento save(MovimientoRequest movimiento) {
+        Proyecto proyecto = proyectoRepository.findById(movimiento.getProyectoId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Proyecto no encontrado con ID: " + movimiento.getProyectoId()));
+        Material material = materialRepository.findById(movimiento.getMaterialId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Material no encontrado con ID: " + movimiento.getMaterialId()));   
+        Movimiento nuevoMovimiento = new Movimiento();
+        nuevoMovimiento.setTipoMovimiento(movimiento.getTipoMovimiento());
+        nuevoMovimiento.setCantidad(movimiento.getCantidad());
+        nuevoMovimiento.setFecha(movimiento.getFecha());
+        nuevoMovimiento.setUsuarioId(movimiento.getUsuarioId());
+        nuevoMovimiento.setEvidenciaFotografica(movimiento.getEvidenciaFotografica());
+        nuevoMovimiento.setProyecto(proyecto);
+        nuevoMovimiento.setMaterial(material);
+        return movimientoRepository.save(nuevoMovimiento);
     }
 
     @Transactional
@@ -37,7 +63,15 @@ public class MovimientoService {
     }
 
     @Transactional
-    public Movimiento update(Movimiento movimiento) {
+    public Movimiento update(Long id, MovimientoRequest request) {
+        Movimiento movimiento = movimientoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Movimiento no encontrado con ID: " + id));
+        movimiento.setTipoMovimiento(request.getTipoMovimiento());
+        movimiento.setCantidad(request.getCantidad());
+        movimiento.setFecha(request.getFecha());
+        movimiento.setUsuarioId(request.getUsuarioId());
+        movimiento.setEvidenciaFotografica(request.getEvidenciaFotografica());
         return movimientoRepository.save(movimiento);
+
     }
 }

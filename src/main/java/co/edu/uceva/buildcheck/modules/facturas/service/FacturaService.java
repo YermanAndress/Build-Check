@@ -152,7 +152,7 @@ public class FacturaService {
                 fMaterialDTO.setId(fm.getId());
                 fMaterialDTO.setCantidad(fm.getCantidad());
                 fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
-                fMaterialDTO.setFacturaId(fm.getFactura().getId());
+                fMaterialDTO.setFacturaId(factura.getId());
                 return fMaterialDTO;
             }).toList()
         );

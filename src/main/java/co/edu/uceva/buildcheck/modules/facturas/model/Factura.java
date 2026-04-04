@@ -43,6 +43,7 @@ public class Factura {
     private Long proyectoId;
 
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<FacturaMaterial> items = new ArrayList<>();
     
     @Column(name = "fecha_creacion", nullable = false, updatable = false)

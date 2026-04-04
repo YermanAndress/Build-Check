@@ -2,6 +2,8 @@ package co.edu.uceva.buildcheck.modules.factura_material.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import jakarta.persistence.Column;
@@ -23,6 +25,7 @@ public class FacturaMaterial {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "factura_id", nullable = false)
     private Factura factura;

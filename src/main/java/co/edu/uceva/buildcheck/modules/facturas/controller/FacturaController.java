@@ -1,6 +1,7 @@
 package co.edu.uceva.buildcheck.modules.facturas.controller;
 
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.facturas.service.FacturaService;
@@ -35,9 +36,12 @@ public class FacturaController {
      */
     @GetMapping("/facturas")
     public ResponseEntity<Map<String, Object>> getFacturas() {
-        List<Factura> facturas = facturaService.findAll();
+        List<FacturaDTO> facturas = facturaService.findAll()
+                .stream()
+                .map(facturaService::toDTO)
+                .toList();
         Map<String, Object> response = new HashMap<>();
-        response.put(FACTURAS, facturas);
+        response.put("facturas", facturas);
         return ResponseEntity.ok(response);
     }
 
@@ -60,9 +64,10 @@ public class FacturaController {
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Factura producto = facturaService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe la factura con el ID: " + id));
+        FacturaDTO facturaDTO = facturaService.toDTO(producto);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido encontrado con éxito!");
-        response.put(FACTURA, producto);
+        response.put(FACTURA, facturaDTO);
         return ResponseEntity.ok(response);
     }
 

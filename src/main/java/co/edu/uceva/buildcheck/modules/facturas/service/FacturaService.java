@@ -1,19 +1,19 @@
 package co.edu.uceva.buildcheck.modules.facturas.service;
 
-import co.edu.uceva.buildcheck.modules.facturas.repository.FacturaRepository;
-import co.edu.uceva.buildcheck.modules.materiales.model.Material;
-import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
-import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
+import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMaterialRepository;
 import co.edu.uceva.buildcheck.modules.proveedores.repository.ProveedorRepository;
+import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
+import co.edu.uceva.buildcheck.modules.facturas.repository.FacturaRepository;
+import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
+import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
+import co.edu.uceva.buildcheck.modules.materiales.model.Material;
+import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.factura_material.DTO.FacturaMaterialDTO;
-import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
-import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMaterialRepository;
-import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaItemRequest;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
-import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +32,14 @@ public class FacturaService {
     private final MaterialRepository materialRepository;
 
     @Autowired
-    public FacturaService(FacturaRepository facturaRepository, IFacturaMaterialRepository facturaMaterialRepository, ProveedorRepository proveedorRepository, MaterialRepository materialRepository){
+    public FacturaService(FacturaRepository facturaRepository, IFacturaMaterialRepository facturaMaterialRepository,
+            ProveedorRepository proveedorRepository, MaterialRepository materialRepository) {
         this.facturaRepository = facturaRepository;
         this.facturaMaterialRepository = facturaMaterialRepository;
         this.proveedorRepository = proveedorRepository;
         this.materialRepository = materialRepository;
     }
+
     /**
      * Guarda Una Factura Nueva
      */
@@ -58,9 +60,10 @@ public class FacturaService {
         factura.setProyectoId(request.getProyectoId());
         List<FacturaMaterial> items = new ArrayList<>();
         if (request.getItems() != null) {
-            for(FacturaItemRequest itemRequest : request.getItems()){
+            for (FacturaItemRequest itemRequest : request.getItems()) {
                 Material material = materialRepository.findById(itemRequest.getMaterialId())
-                        .orElseThrow(() -> new RecursoNoEncontradoException("Material no encontrado con ID: " + itemRequest.getMaterialId()));
+                        .orElseThrow(() -> new RecursoNoEncontradoException(
+                                "Material no encontrado con ID: " + itemRequest.getMaterialId()));
                 FacturaMaterial facturaMaterial = new FacturaMaterial();
                 facturaMaterial.setFactura(factura);
                 facturaMaterial.setMaterial(material);
@@ -81,8 +84,9 @@ public class FacturaService {
         boolean tieneMateriales = facturaMaterialRepository.existsByFactura(factura);
         if (!tieneMateriales) {
             facturaRepository.delete(factura);
-        }else{
-            throw new OperacionNoPermitidaException("No se puede eliminar la factura debido a que tiene materiales asociados");
+        } else {
+            throw new OperacionNoPermitidaException(
+                    "No se puede eliminar la factura debido a que tiene materiales asociados");
         }
     }
 
@@ -115,9 +119,10 @@ public class FacturaService {
         facturaExistente.setProveedor(proveedor);
         facturaExistente.getItems().clear();
         if (factura.getItems() != null) {
-            for(FacturaItemRequest itemRequest : factura.getItems()){
+            for (FacturaItemRequest itemRequest : factura.getItems()) {
                 Material material = materialRepository.findById(itemRequest.getMaterialId())
-                        .orElseThrow(() -> new RecursoNoEncontradoException("Material no encontrado con ID: " + itemRequest.getMaterialId()));
+                        .orElseThrow(() -> new RecursoNoEncontradoException(
+                                "Material no encontrado con ID: " + itemRequest.getMaterialId()));
                 FacturaMaterial facturaMaterial = new FacturaMaterial();
                 facturaMaterial.setFactura(facturaExistente);
                 facturaMaterial.setMaterial(material);
@@ -147,15 +152,14 @@ public class FacturaService {
         facturaDTO.setValorTotal(factura.getValorTotal());
         facturaDTO.setProyectoId(factura.getProyectoId());
         facturaDTO.setItems(
-            factura.getItems().stream().map(fm -> {
-                FacturaMaterialDTO fMaterialDTO = new FacturaMaterialDTO();
-                fMaterialDTO.setId(fm.getId());
-                fMaterialDTO.setCantidad(fm.getCantidad());
-                fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
-                fMaterialDTO.setFacturaId(factura.getId());
-                return fMaterialDTO;
-            }).toList()
-        );
+                factura.getItems().stream().map(fm -> {
+                    FacturaMaterialDTO fMaterialDTO = new FacturaMaterialDTO();
+                    fMaterialDTO.setId(fm.getId());
+                    fMaterialDTO.setCantidad(fm.getCantidad());
+                    fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
+                    fMaterialDTO.setFacturaId(factura.getId());
+                    return fMaterialDTO;
+                }).toList());
         return facturaDTO;
     }
 }

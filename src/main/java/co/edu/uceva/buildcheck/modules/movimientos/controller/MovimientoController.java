@@ -1,18 +1,16 @@
 package co.edu.uceva.buildcheck.modules.movimientos.controller;
 
-import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
-import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
-import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 import co.edu.uceva.buildcheck.modules.movimientos.service.MovimientoService;
+import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 
-import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.HashMap;
 
 @RestController

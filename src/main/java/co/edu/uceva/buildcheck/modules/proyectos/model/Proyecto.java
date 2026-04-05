@@ -1,15 +1,15 @@
 package co.edu.uceva.buildcheck.modules.proyectos.model;
 
+import co.edu.uceva.buildcheck.modules.proyectos.model.Estados.EstadoNombre;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 
 @Entity
@@ -37,8 +37,10 @@ public class Proyecto {
     @Column(nullable = false)
     private Double presupuesto;
 
-    @Pattern(regexp = "^(Planificacion|Ejecucion|Terminado)$", message = "El estado debe ser Planificacion, Ejecucion o Terminado")
-    private String estado;
+    @NotNull(message = "El tipo de movimiento no puede estar vacio")
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EstadoNombre estado;
 
     @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL, orphanRemoval = false)
     @JsonIgnore
@@ -51,7 +53,7 @@ public class Proyecto {
     private String usuarioCreador;
 
     @PrePersist
-    public void prePersist(){
+    public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
         if (this.usuarioCreador == null) {
             this.usuarioCreador = "system";

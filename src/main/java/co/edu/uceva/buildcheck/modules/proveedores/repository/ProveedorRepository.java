@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
 
 @Repository
-public interface ProveedorRepository  extends JpaRepository<Proveedor, Long> {    
+public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     Optional<Proveedor> findByNombre(String nombre);
 }

@@ -1,20 +1,19 @@
 package co.edu.uceva.buildcheck.modules.factura_material.model;
 
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import jakarta.persistence.Id;
 import lombok.Data;
 
 @Entity
@@ -32,6 +31,7 @@ public class FacturaMaterial {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "material_id", nullable = false)
+    @JsonIgnore
     private Material material;
 
     @Column(name = "cantidad", nullable = false)
@@ -47,7 +47,7 @@ public class FacturaMaterial {
     private String usuarioCreador;
 
     @PrePersist
-    public void prePersist(){
+    public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
         if (this.usuarioCreador == null) {
             this.usuarioCreador = "system";

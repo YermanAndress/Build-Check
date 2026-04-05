@@ -1,22 +1,23 @@
 package co.edu.uceva.buildcheck.modules.proyectos.service;
 
-import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
 import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
 import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
-import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
+import org.springframework.stereotype.Service;
+
 import java.util.Optional;
+import java.util.List;
 
 @Service
-public class ProyectoServiceImpl implements IProyectoService{
+public class ProyectoServiceImpl implements IProyectoService {
     private final IProyectoRepository proyectoRepository;
     private final MovimientoRepository movimientoRepository;
 
-    public ProyectoServiceImpl(IProyectoRepository proyectoRepository, MovimientoRepository movimientoRepository){
+    public ProyectoServiceImpl(IProyectoRepository proyectoRepository, MovimientoRepository movimientoRepository) {
         this.proyectoRepository = proyectoRepository;
         this.movimientoRepository = movimientoRepository;
     }
@@ -29,11 +30,12 @@ public class ProyectoServiceImpl implements IProyectoService{
 
     @Override
     @Transactional
-    public void delete(Proyecto proyecto){
+    public void delete(Proyecto proyecto) {
         if (!movimientoRepository.existsByProyecto(proyecto)) {
-            proyectoRepository.delete(proyecto);   
-        }else{
-            throw new OperacionNoPermitidaException("No se puede eliminar el proyecto porque tiene movimientos asociados");
+            proyectoRepository.delete(proyecto);
+        } else {
+            throw new OperacionNoPermitidaException(
+                    "No se puede eliminar el proyecto porque tiene movimientos asociados");
         }
     }
 
@@ -45,9 +47,10 @@ public class ProyectoServiceImpl implements IProyectoService{
 
     @Override
     @Transactional
-    public Proyecto update(Proyecto proyecto){
+    public Proyecto update(Proyecto proyecto) {
         Proyecto proyectoExistente = proyectoRepository.findById(proyecto.getId())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Proyecto no encontrado con ID: " + proyecto.getId()));
+                .orElseThrow(
+                        () -> new RecursoNoEncontradoException("Proyecto no encontrado con ID: " + proyecto.getId()));
         proyectoExistente.setNombre(proyecto.getNombre());
         proyectoExistente.setDescripcion(proyecto.getDescripcion());
         proyectoExistente.setEstado(proyecto.getEstado());

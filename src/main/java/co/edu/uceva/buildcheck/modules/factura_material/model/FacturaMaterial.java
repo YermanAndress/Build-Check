@@ -31,6 +31,7 @@ public class FacturaMaterial {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "material_id", nullable = false)
+    @JsonIgnore
     private Material material;
 
     @Column(name = "cantidad", nullable = false)

@@ -4,7 +4,8 @@ import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
 
 import lombok.Data;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
@@ -42,7 +43,7 @@ public class Factura {
     private Long proyectoId;
 
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+    @JsonManagedReference
     private List<FacturaMaterial> items = new ArrayList<>();
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)

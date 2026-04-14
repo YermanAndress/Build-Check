@@ -3,7 +3,7 @@ package co.edu.uceva.buildcheck.modules.factura_material.model;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.JoinColumn;
@@ -24,14 +24,13 @@ public class FacturaMaterial {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "factura_id", nullable = false)
+    @JsonBackReference
     private Factura factura;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "material_id", nullable = false)
-    @JsonIgnore
     private Material material;
 
     @Column(name = "cantidad", nullable = false)

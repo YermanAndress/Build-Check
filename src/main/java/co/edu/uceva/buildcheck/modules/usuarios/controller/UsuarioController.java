@@ -1,11 +1,14 @@
 package co.edu.uceva.buildcheck.modules.usuarios.controller;
 
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
+import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import java.util.NoSuchElementException;
@@ -92,5 +95,31 @@ public class UsuarioController {
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El Usuario Ha sido eliminado con éxito!");
         return ResponseEntity.ok(response);
+    }
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest){
+        Usuario usuario = usuarioService.findByCorreo(loginRequest.getCorreo())
+                .orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Usuario o contraseña incorrecta"));
+        }
+        if (!passwordEncoder.matches(loginRequest.getPassword(), usuario.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Usuario o contraseña incorrecta"));
+        }
+        return ResponseEntity.ok(usuario);
+    }
+
+    @GetMapping("/usuarios/buscar")
+    public ResponseEntity<?> findByCorreo(@RequestParam String correo) {
+        Usuario usuario = usuarioService.findByCorreo(correo)
+                .orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No existe el usuario con correo: " + correo));
+        }
+        return ResponseEntity.ok(usuario);
     }
 }

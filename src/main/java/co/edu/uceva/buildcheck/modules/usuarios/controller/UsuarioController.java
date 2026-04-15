@@ -1,6 +1,8 @@
 package co.edu.uceva.buildcheck.modules.usuarios.controller;
 
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
+import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
+import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
@@ -97,6 +99,7 @@ public class UsuarioController {
         return ResponseEntity.ok(response);
     }
 
+    // Envio de datos para el login
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -113,6 +116,8 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
+    //Buscar usuario por correo
+
     @GetMapping("/usuarios/buscar")
     public ResponseEntity<?> findByCorreo(@RequestParam String correo) {
         Usuario usuario = usuarioService.findByCorreo(correo)
@@ -121,5 +126,23 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No existe el usuario con correo: " + correo));
         }
         return ResponseEntity.ok(usuario);
+    }
+
+    // Recuperar contraseña
+    @Autowired
+    private EmailService emailService;
+    
+    @PostMapping("/usuarios/recuperar")
+    public ResponseEntity<?> recuperarPassword(@RequestParam String correo) {
+        Usuario usuario = usuarioService.findByCorreo(correo)
+                .orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No existe el usuario con correo: " + correo));
+        }
+        String nuevaPassword = GenerarPassword.generarPassword();
+        usuario.setPassword(passwordEncoder.encode(nuevaPassword));
+        usuarioService.update(usuario);
+        emailService.enviarCorreo(correo, "Recuperación de contraseña", "Tu nueva contraseña es: " + nuevaPassword);
+        return ResponseEntity.ok(Map.of("mensaje", "Se ha enviado una nueva contraseña a tu correo"));
     }
 }

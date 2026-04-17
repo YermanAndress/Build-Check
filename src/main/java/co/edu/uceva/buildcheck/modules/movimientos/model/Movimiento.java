@@ -4,7 +4,6 @@ import co.edu.uceva.buildcheck.modules.movimientos.model.tipoMovimiento.TipoMovi
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
@@ -46,12 +45,11 @@ public class Movimiento {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "proyecto_id", nullable = false)
-    @JsonIgnore
+
     private Proyecto proyecto;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "material_id", nullable = false)
-    @JsonIgnore
     private Material material;
 
     @Column(name = "usuario_creador", nullable = false, length = 100)

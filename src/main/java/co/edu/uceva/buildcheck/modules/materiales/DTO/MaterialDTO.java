@@ -13,7 +13,7 @@ public class MaterialDTO {
     String descripcion;
     String unidadMedida;
     Double precioUnitario;
-    Integer stockActual;
+    Double stockActual;
     LocalDateTime fechaCreacion;
     String usuarioCreador;
 

@@ -10,12 +10,12 @@ import lombok.Data;
 public class MaterialStockBajoDTO {
     private Long id;
     private String nombre;
-    private Integer stockActual;
-    private Integer stockReferencia;
+    private Double stockActual;
+    private Double stockReferencia;
     private String unidadMedida;
     private String mensaje;
 
-    public MaterialStockBajoDTO(Long id, String nombre, Integer stockActual, Integer stockReferencia,
+    public MaterialStockBajoDTO(Long id, String nombre, Double stockActual, Double stockReferencia,
             String unidadMedida) {
         this.id = id;
         this.nombre = nombre;

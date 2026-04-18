@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class FacturaMaterialDTO {
     private Long id;
+    private String nombreMaterial;
     private Double cantidad;
     private Double precioUnitario;
     private Long FacturaId;

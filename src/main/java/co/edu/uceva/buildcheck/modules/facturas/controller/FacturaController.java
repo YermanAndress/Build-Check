@@ -6,12 +6,11 @@ import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 
-import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 
-import java.util.NoSuchElementException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +88,7 @@ public class FacturaController {
     @DeleteMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Factura factura = facturaService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe la factura con el ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la factura con el ID: " + id));
 
         facturaService.delete(factura);
         Map<String, Object> response = new HashMap<>();

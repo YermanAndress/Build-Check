@@ -1,8 +1,8 @@
 package co.edu.uceva.buildcheck.modules.movimientos.DTO;
 
-import java.time.LocalDate;
-
 import co.edu.uceva.buildcheck.modules.movimientos.model.tipoMovimiento.TipoMovimientoNombre;
+
+import java.time.LocalDate;
 import lombok.Data;
 
 @Data

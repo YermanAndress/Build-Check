@@ -4,10 +4,9 @@ import co.edu.uceva.buildcheck.modules.proyectos.model.Estados.EstadoNombre;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;

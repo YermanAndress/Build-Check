@@ -6,11 +6,11 @@ import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 import co.edu.uceva.buildcheck.exception.NoHayDatosException;
 import co.edu.uceva.buildcheck.exception.ValidationException;
 
-import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.List;

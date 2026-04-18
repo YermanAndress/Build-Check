@@ -2,14 +2,14 @@ package co.edu.uceva.buildcheck.modules.materiales.controller;
 
 import co.edu.uceva.buildcheck.modules.materiales.DTO.MaterialStockBajoDTO;
 import co.edu.uceva.buildcheck.modules.materiales.service.MaterialService;
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 
-import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import java.util.NoSuchElementException;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +59,7 @@ public class MaterialController {
     @GetMapping("/materiales/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Material producto = materialService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el material con ID: " + id));
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El material ha sido encontrado con éxito!");
         response.put(MATERIAL, producto);
@@ -73,7 +73,7 @@ public class MaterialController {
     @PreAuthorize("hasAnyRole('ADMIN', 'ALMACENISTA')")
     public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Material material) {
         materialService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el material con ID: " + id));
 
         material.setId(id); // Aseguramos que se actualice el ID correcto
         Material materialActualizado = materialService.update(material);
@@ -91,7 +91,7 @@ public class MaterialController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Material material = materialService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el material con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el material con ID: " + id));
 
         materialService.delete(material);
         Map<String, Object> response = new HashMap<>();

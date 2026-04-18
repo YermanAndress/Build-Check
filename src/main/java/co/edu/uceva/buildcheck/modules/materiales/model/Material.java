@@ -3,15 +3,12 @@ package co.edu.uceva.buildcheck.modules.materiales.model;
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.Data;
 
 @Entity

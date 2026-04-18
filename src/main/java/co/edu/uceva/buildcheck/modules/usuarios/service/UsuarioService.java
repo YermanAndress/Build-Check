@@ -1,6 +1,7 @@
 package co.edu.uceva.buildcheck.modules.usuarios.service;
 
 import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -47,7 +47,7 @@ public class UsuarioService {
     @Transactional
     public Usuario update(Usuario usuario) {
         Usuario usuarioExistente = usuarioRepository.findById(usuario.getId())
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
         if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()
                 && !usuario.getPassword().equals(usuarioExistente.getPassword())) {
             usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));

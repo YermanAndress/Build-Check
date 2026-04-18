@@ -1,19 +1,19 @@
 package co.edu.uceva.buildcheck.modules.usuarios.controller;
 
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
-import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
+import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 
-import java.util.NoSuchElementException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ public class UsuarioController {
     @GetMapping("/usuarios/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el usuario con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El usuario ha sido encontrado con éxito!");
         response.put(USUARIO, usuario);
@@ -74,7 +74,7 @@ public class UsuarioController {
     @PutMapping("/usuarios/{id}")
     public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
         usuarioService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el usuario con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
 
         usuario.setId(id); // Aseguramos que se actualice el ID correcto
         Usuario usuarioActualizado = usuarioService.update(usuario);
@@ -91,7 +91,7 @@ public class UsuarioController {
     @DeleteMapping("/usuarios/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No existe el usuario con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
 
         usuarioService.delete(usuario);
         Map<String, Object> response = new HashMap<>();
@@ -104,26 +104,29 @@ public class UsuarioController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Usuario usuario = usuarioService.findByCorreo(loginRequest.getCorreo())
                 .orElse(null);
         if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Usuario o contraseña incorrecta"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Usuario o contraseña incorrecta"));
         }
         if (!passwordEncoder.matches(loginRequest.getPassword(), usuario.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Usuario o contraseña incorrecta"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Usuario o contraseña incorrecta"));
         }
         return ResponseEntity.ok(usuario);
     }
 
-    //Buscar usuario por correo
+    // Buscar usuario por correo
 
     @GetMapping("/usuarios/buscar")
     public ResponseEntity<?> findByCorreo(@RequestParam String correo) {
         Usuario usuario = usuarioService.findByCorreo(correo)
                 .orElse(null);
         if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No existe el usuario con correo: " + correo));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "No existe el usuario con correo: " + correo));
         }
         return ResponseEntity.ok(usuario);
     }
@@ -131,13 +134,14 @@ public class UsuarioController {
     // Recuperar contraseña
     @Autowired
     private EmailService emailService;
-    
+
     @PostMapping("/usuarios/recuperar")
     public ResponseEntity<?> recuperarPassword(@RequestParam String correo) {
         Usuario usuario = usuarioService.findByCorreo(correo)
                 .orElse(null);
         if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No existe el usuario con correo: " + correo));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "No existe el usuario con correo: " + correo));
         }
         String nuevaPassword = GenerarPassword.generarPassword();
         usuario.setPassword(passwordEncoder.encode(nuevaPassword));

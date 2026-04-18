@@ -4,5 +4,5 @@ public class NoHayDatosException extends RuntimeException {
     public NoHayDatosException(String mensaje) {
         super(mensaje);
     }
-    
+
 }

@@ -5,6 +5,7 @@ import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
+import co.edu.uceva.buildcheck.modules.usuarios.login.RsaKeyService;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -105,17 +106,21 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        Usuario usuario = usuarioService.findByCorreo(loginRequest.getCorreo())
-                .orElse(null);
-        if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Usuario o contraseña incorrecta"));
+        try {
+            String correo   = rsaKeyService.decrypt(loginRequest.getCorreo());
+            String password = rsaKeyService.decrypt(loginRequest.getPassword());
+
+            Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
+            if (usuario == null || !passwordEncoder.matches(password, usuario.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Usuario o contraseña incorrecta"));
+            }
+            return ResponseEntity.ok(usuario);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Error al desencriptar datos"));
         }
-        if (!passwordEncoder.matches(loginRequest.getPassword(), usuario.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Usuario o contraseña incorrecta"));
-        }
-        return ResponseEntity.ok(usuario);
     }
 
     // Buscar usuario por correo
@@ -148,5 +153,14 @@ public class UsuarioController {
         usuarioService.update(usuario);
         emailService.enviarCorreo(correo, "Recuperación de contraseña", "Tu nueva contraseña es: " + nuevaPassword);
         return ResponseEntity.ok(Map.of("mensaje", "Se ha enviado una nueva contraseña a tu correo"));
+    }
+
+    @Autowired
+    private RsaKeyService rsaKeyService;
+
+    /** Expone la llave pública para que el cliente encripte */
+    @GetMapping("/public-key")
+    public ResponseEntity<Map<String, String>> getPublicKey() {
+        return ResponseEntity.ok(Map.of("publicKey", rsaKeyService.getPublicKeyBase64()));
     }
 }

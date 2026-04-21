@@ -80,10 +80,7 @@ public class UsuarioController {
         }
         // Cifrar nombre con algoritmo simetrico
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
-        
-        // Cifrar contraseña con BCrypt
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-      
+  
         Usuario nuevoUsuario = usuarioService.save(usuario);
         // Devolver nombre descifrado al frontend
         try{

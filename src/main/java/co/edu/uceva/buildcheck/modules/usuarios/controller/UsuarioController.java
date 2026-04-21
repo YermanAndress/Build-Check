@@ -23,7 +23,17 @@ import java.util.Map;
 @RequestMapping("/api/usuarios-service")
 @CrossOrigin(origins = "*")
 public class UsuarioController {
+
     private final UsuarioService usuarioService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private RsaKeyService rsaKeyService;
 
     private static final String MENSAJE = "mensaje";
     private static final String USUARIO = "usuario";
@@ -33,9 +43,7 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    /**
-     * Listar todos los usuarios
-     */
+    // ── Listar todos los usuarios ─────────────────────────────────
     @GetMapping("/usuarios")
     public ResponseEntity<Map<String, Object>> getUsuarios() {
         List<Usuario> usuarios = usuarioService.findAll();
@@ -44,11 +52,28 @@ public class UsuarioController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Crear un nuevo usuario
-     */
+    // ── Crear un nuevo usuario ────────────────────────────────────
     @PostMapping("/usuarios")
-    public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Usuario usuario) {
+    public ResponseEntity<Map<String, Object>> save(@RequestBody Usuario usuario) {
+        try {
+            // Desencriptar solo el correo
+            String correoDescifrado = rsaKeyService.decrypt(usuario.getCorreo());
+            usuario.setCorreo(correoDescifrado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of(MENSAJE, "Error al desencriptar el correo"));
+        }
+
+        // Validar manualmente después de desencriptar
+        if (usuario.getNombre() == null || usuario.getNombre().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of(MENSAJE, "El nombre no puede estar vacío"));
+        }
+        if (usuario.getPassword() == null || usuario.getPassword().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of(MENSAJE, "La contraseña no puede estar vacía"));
+        }
+
         Usuario nuevoUsuario = usuarioService.save(usuario);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El usuario ha sido creado con éxito!");
@@ -56,9 +81,7 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * Obtener un usuario por su ID
-     */
+    // ── Obtener un usuario por ID ─────────────────────────────────
     @GetMapping("/usuarios/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id)
@@ -69,41 +92,31 @@ public class UsuarioController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Actualizar un usuario
-     */
+    // ── Actualizar un usuario ─────────────────────────────────────
     @PutMapping("/usuarios/{id}")
     public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
         usuarioService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
-
-        usuario.setId(id); // Aseguramos que se actualice el ID correcto
+        usuario.setId(id);
         Usuario usuarioActualizado = usuarioService.update(usuario);
-
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El usuario ha sido actualizado con éxito!");
         response.put(USUARIO, usuarioActualizado);
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Eliminar un usuario por su ID
-     */
+    // ── Eliminar un usuario ───────────────────────────────────────
     @DeleteMapping("/usuarios/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
-
         usuarioService.delete(usuario);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El Usuario Ha sido eliminado con éxito!");
         return ResponseEntity.ok(response);
     }
 
-    // Envio de datos para el login
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
+    // ── Login con RSA ─────────────────────────────────────────────
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
@@ -111,7 +124,11 @@ public class UsuarioController {
             String password = rsaKeyService.decrypt(loginRequest.getPassword());
 
             Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
-            if (usuario == null || !passwordEncoder.matches(password, usuario.getPassword())) {
+            if (usuario == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Usuario o contraseña incorrecta"));
+            }
+            if (!passwordEncoder.matches(password, usuario.getPassword())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Usuario o contraseña incorrecta"));
             }
@@ -123,12 +140,10 @@ public class UsuarioController {
         }
     }
 
-    // Buscar usuario por correo
-
+    // ── Buscar usuario por correo ─────────────────────────────────
     @GetMapping("/usuarios/buscar")
     public ResponseEntity<?> findByCorreo(@RequestParam String correo) {
-        Usuario usuario = usuarioService.findByCorreo(correo)
-                .orElse(null);
+        Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "No existe el usuario con correo: " + correo));
@@ -136,14 +151,10 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
-    // Recuperar contraseña
-    @Autowired
-    private EmailService emailService;
-
+    // ── Recuperar contraseña ──────────────────────────────────────
     @PostMapping("/usuarios/recuperar")
     public ResponseEntity<?> recuperarPassword(@RequestParam String correo) {
-        Usuario usuario = usuarioService.findByCorreo(correo)
-                .orElse(null);
+        Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "No existe el usuario con correo: " + correo));
@@ -155,10 +166,7 @@ public class UsuarioController {
         return ResponseEntity.ok(Map.of("mensaje", "Se ha enviado una nueva contraseña a tu correo"));
     }
 
-    @Autowired
-    private RsaKeyService rsaKeyService;
-
-    /** Expone la llave pública para que el cliente encripte */
+    // ── Exponer llave pública RSA ─────────────────────────────────
     @GetMapping("/public-key")
     public ResponseEntity<Map<String, String>> getPublicKey() {
         return ResponseEntity.ok(Map.of("publicKey", rsaKeyService.getPublicKeyBase64()));

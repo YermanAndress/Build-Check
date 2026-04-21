@@ -16,7 +16,7 @@ public class Usuario {
     private Long id;
 
     @NotEmpty(message = "No puede estar vacio")
-    @Size(min = 2, max = 50, message = "El tamaño tiene que estar entre 2 y 50")
+    @Size(min = 2, max = 255, message = "El tamaño tiene que estar entre 2 y 255")
     @Column(nullable = false)
     private String nombre;
 

@@ -1,6 +1,7 @@
 package co.edu.uceva.buildcheck.modules.usuarios.controller;
 
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
+import co.edu.uceva.buildcheck.security.CifradoSimetrico;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
@@ -32,12 +33,21 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
+    @Autowired
+    private CifradoSimetrico cifradoSimetrico;
     /**
      * Listar todos los usuarios
      */
     @GetMapping("/usuarios")
     public ResponseEntity<Map<String, Object>> getUsuarios() {
         List<Usuario> usuarios = usuarioService.findAll();
+        usuarios.forEach(u ->{
+            try{
+                u.setNombre(cifradoSimetrico.descifrar(u.getNombre()));
+            }catch (Exception e){
+                // Si ocurre un error al descifrar, dejamos el nombre sin cambios
+            }
+        });
         Map<String, Object> response = new HashMap<>();
         response.put(USUARIOS, usuarios);
         return ResponseEntity.ok(response);
@@ -48,7 +58,13 @@ public class UsuarioController {
      */
     @PostMapping("/usuarios")
     public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Usuario usuario) {
+        usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
         Usuario nuevoUsuario = usuarioService.save(usuario);
+        try{
+            nuevoUsuario.setNombre(cifradoSimetrico.descifrar(nuevoUsuario.getNombre()));
+        }catch (Exception e){
+            // Si ocurre un error al descifrar, dejamos el nombre sin cambios
+        }
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El usuario ha sido creado con éxito!");
         response.put(USUARIO, nuevoUsuario);
@@ -62,6 +78,11 @@ public class UsuarioController {
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
+        try{
+            usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+        }catch (Exception e){
+            // Si ocurre un error al descifrar, dejamos el nombre sin cambios
+        }
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El usuario ha sido encontrado con éxito!");
         response.put(USUARIO, usuario);
@@ -77,8 +98,13 @@ public class UsuarioController {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
 
         usuario.setId(id); // Aseguramos que se actualice el ID correcto
+        usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
         Usuario usuarioActualizado = usuarioService.update(usuario);
-
+        try{
+            usuarioActualizado.setNombre(cifradoSimetrico.descifrar(usuarioActualizado.getNombre()));
+        }catch (Exception e){
+            // Si ocurre un error al descifrar, dejamos el nombre sin cambios
+        }
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El usuario ha sido actualizado con éxito!");
         response.put(USUARIO, usuarioActualizado);
@@ -115,6 +141,11 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Usuario o contraseña incorrecta"));
         }
+        try{
+            usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+        }catch (Exception e){
+            // Si ocurre un error al descifrar, dejamos el nombre sin cambios
+        }
         return ResponseEntity.ok(usuario);
     }
 
@@ -127,6 +158,11 @@ public class UsuarioController {
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "No existe el usuario con correo: " + correo));
+        }
+        try{
+            usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+        }catch (Exception e){
+            // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         return ResponseEntity.ok(usuario);
     }

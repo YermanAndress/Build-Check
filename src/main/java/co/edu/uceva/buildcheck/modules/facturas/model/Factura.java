@@ -1,9 +1,16 @@
 package co.edu.uceva.buildcheck.modules.facturas.model;
 
-import jakarta.persistence.*;
+import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
+import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.validation.constraints.*;
-import lombok.Data;
+import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
 
 @Entity
 @Data
@@ -20,8 +27,9 @@ public class Factura {
     @NotNull(message = "La fecha no puede estar vacía")
     private LocalDate fecha;
 
-    @NotEmpty(message = "El nombre del proveedor no puede estar vacío")
-    private String proveedor;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "proveedor_id")
+    private Proveedor proveedor;
 
     @Size(max = 500, message = "La descripción es muy larga")
     private String observaciones;
@@ -32,4 +40,22 @@ public class Factura {
 
     @Column(name = "proyecto_id")
     private Long proyectoId;
+
+    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<FacturaMaterial> items = new ArrayList<>();
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "usuario_creador", nullable = false, length = 100)
+    private String usuarioCreador;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaCreacion = LocalDateTime.now();
+        if (this.usuarioCreador == null) {
+            this.usuarioCreador = "system";
+        }
+    }
 }

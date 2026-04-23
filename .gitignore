@@ -13,5 +13,8 @@ application-local.properties
 
 # Docker local
 .docker/
-
 .env
+
+# Llaves RSA
+rsa_private.key
+rsa_public.key

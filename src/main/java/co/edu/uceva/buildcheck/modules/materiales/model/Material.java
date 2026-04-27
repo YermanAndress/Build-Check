@@ -20,7 +20,7 @@ public class Material {
     private Long id;
 
     @NotEmpty(message = "No puede estar vacio")
-    @Size(min = 2, max = 20, message = "El tamaño tiene que estar entre 2 y 20")
+    @Size(min = 2, max = 50, message = "El tamaño tiene que estar entre 2 y 50")
     @Column(nullable = false)
     private String nombre;
 

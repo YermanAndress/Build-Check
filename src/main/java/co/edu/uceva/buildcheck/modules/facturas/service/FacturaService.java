@@ -2,23 +2,29 @@ package co.edu.uceva.buildcheck.modules.facturas.service;
 
 import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+
+import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMaterialRepository;
 import co.edu.uceva.buildcheck.modules.factura_material.DTO.FacturaMaterialDTO;
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
-import co.edu.uceva.buildcheck.modules.factura_material.repository.IFacturaMaterialRepository;
-import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
+
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaItemRequest;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
-import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
 import co.edu.uceva.buildcheck.modules.facturas.repository.FacturaRepository;
-import co.edu.uceva.buildcheck.modules.materiales.model.Material;
+import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
+
 import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
-import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
+import co.edu.uceva.buildcheck.modules.materiales.model.Material;
+
 import co.edu.uceva.buildcheck.modules.movimientos.model.tipoMovimiento.TipoMovimientoNombre;
 import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
-import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
+import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
+
 import co.edu.uceva.buildcheck.modules.proveedores.repository.ProveedorRepository;
-import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
+
 import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +73,11 @@ public class FacturaService {
                 });
 
         // 2. Factura
+        Optional<Factura> facturaExistente = facturaRepository.findByNumeroFactura(request.getNumeroFactura());
+        if (facturaExistente.isPresent()) {
+            throw new OperacionNoPermitidaException(
+                    "Ya existe una factura con el número: " + request.getNumeroFactura());
+        }
         Factura factura = new Factura();
         factura.setNumeroFactura(request.getNumeroFactura());
         factura.setFecha(request.getFecha());
@@ -74,6 +85,11 @@ public class FacturaService {
         factura.setObservaciones(request.getObservaciones());
         factura.setValorTotal(request.getValorTotal());
         factura.setProyectoId(request.getProyectoId());
+
+        // TEMPORAL PARA PRODUCCION
+        if (request.getProyectoId() == null) {
+            request.setProyectoId(1L);
+        }
 
         // 3. Validar y obtener proyecto
         if (request.getProyectoId() == null) {
@@ -85,7 +101,6 @@ public class FacturaService {
         // 4. Items y movimientos
         List<FacturaMaterial> items = new ArrayList<>();
         for (FacturaItemRequest itemRequest : request.getItems()) {
-            // Material (buscar o crear)
             Material material = materialRepository.findByNombre(itemRequest.getNombre())
                     .orElseGet(() -> {
                         Material nuevo = new Material();

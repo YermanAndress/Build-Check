@@ -27,9 +27,9 @@ public class Material {
     @Size(max = 255, message = "La descripción no puede tener más de 255 caracteres")
     private String descripcion;
 
-    @NotEmpty(message = "La unidad de medida no puede estar vacia")
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String unidadMedida;
+    private UnidadMedida unidadMedida;
 
     @DecimalMin(value = "0", message = "El precio unitario debe ser un valor positivo")
     private Double precioUnitario;

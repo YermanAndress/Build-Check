@@ -1,8 +1,10 @@
 package co.edu.uceva.buildcheck.modules.facturas.DTO;
 
-import jakarta.validation.constraints.Min;
+import co.edu.uceva.buildcheck.modules.materiales.model.UnidadMedida;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 @Data
@@ -22,5 +24,5 @@ public class FacturaItemRequest {
     private Double precioUnitario;
 
     @NotNull(message = "La unidad de medida es obligatoria")
-    private String unidadMedida;
+    private UnidadMedida unidadMedida;
 }

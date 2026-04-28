@@ -39,6 +39,8 @@ public class UsuarioController {
   
     @Autowired
     private CifradoSimetrico cifradoSimetrico;
+    
+    @Autowired
     private Jwt jwt;
 
     private static final String MENSAJE = "mensaje";

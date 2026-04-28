@@ -51,4 +51,13 @@ public class Jwt {
                 .getSubject();
     }
 
+    public String getRol(String token){
+        return Jwts.parserBuilder()
+                .setSigningKey(getLoginKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("rol", String.class);
+    }
+
 }

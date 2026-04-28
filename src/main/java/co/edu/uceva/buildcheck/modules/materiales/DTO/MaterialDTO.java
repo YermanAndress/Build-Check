@@ -1,6 +1,7 @@
 package co.edu.uceva.buildcheck.modules.materiales.DTO;
 
 import co.edu.uceva.buildcheck.modules.factura_material.DTO.FacturaMaterialDTO;
+import co.edu.uceva.buildcheck.modules.materiales.model.UnidadMedida;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,7 +12,7 @@ public class MaterialDTO {
     Long id;
     String nombre;
     String descripcion;
-    String unidadMedida;
+    UnidadMedida unidadMedida;
     Double precioUnitario;
     Double stockActual;
     LocalDateTime fechaCreacion;

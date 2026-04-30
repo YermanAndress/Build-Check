@@ -23,7 +23,7 @@ public class Jwt {
     public String generarToken(String correo, RolNombre rol){
         return Jwts.builder()
                 .setSubject(correo)
-                .claim("rol", rol)
+                .claim("rol", rol.name())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(getLoginKey(), SignatureAlgorithm.HS256)

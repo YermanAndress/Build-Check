@@ -2,6 +2,7 @@ package co.edu.uceva.buildcheck.modules.usuarios.controller;
 
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
 import co.edu.uceva.buildcheck.security.CifradoSimetrico;
+import co.edu.uceva.buildcheck.security.Jwt;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
@@ -38,6 +39,9 @@ public class UsuarioController {
   
     @Autowired
     private CifradoSimetrico cifradoSimetrico;
+    
+    @Autowired
+    private Jwt jwt;
 
     private static final String MENSAJE = "mensaje";
     private static final String USUARIO = "usuario";
@@ -163,7 +167,11 @@ public class UsuarioController {
             }catch (Exception e){
               // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
-            return ResponseEntity.ok(usuario);
+            String token = jwt.generarToken(usuario.getCorreo(), usuario.getRol());
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("usuario", usuario);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
           return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                   .body(Map.of("error", "Error al desencriptar datos"));

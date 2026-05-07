@@ -1,5 +1,7 @@
 package co.edu.uceva.buildcheck.config;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -8,7 +10,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import co.edu.uceva.buildcheck.security.Jwt;
 import co.edu.uceva.buildcheck.security.JwtFilter;
 
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
@@ -39,7 +45,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/api/usuarios-service/login",
-                    "/api/usuarios-service/public-key"
+                    "/api/usuarios-service/refresh",
+                    "/api/usuarios-service/public-key",
+                    "/api/usuarios-service/usuarios"                    
                 ).permitAll()
                 .requestMatchers("/api/materiales-service/**").hasRole("ADMIN")
                 .requestMatchers("/api/movimientos-service/**").hasRole("ADMIN")

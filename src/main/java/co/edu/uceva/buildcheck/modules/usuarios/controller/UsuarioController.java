@@ -167,15 +167,42 @@ public class UsuarioController {
             }catch (Exception e){
               // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
-            String token = jwt.generarToken(usuario.getCorreo(), usuario.getRol());
+            String accessToken = jwt.generarAccesToken(usuario.getCorreo(), usuario.getRol());
+            String refreshToken = jwt.generarRefreshToken(usuario.getCorreo());
             Map<String, Object> response = new HashMap<>();
-            response.put("token", token);
+            response.put("accessToken", accessToken);
+            response.put("refreshToken", refreshToken);
             response.put("usuario", usuario);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
           return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                   .body(Map.of("error", "Error al desencriptar datos"));
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody Map<String, String> body){
+        String refreshToken = body.get("refreshToken");
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Refresh token es requerido"));
+        }
+        if (!jwt.ValidarToken(refreshToken) || !jwt.esRefreshToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Refresh token invalido o expirado"));
+        }
+        String correo = jwt.getCorreo(refreshToken);
+        Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Usuario no encontrado para este token"));
+        }
+        String newAccessToken = jwt.generarAccesToken(usuario.getCorreo(), usuario.getRol());
+        String newRefreshToken = jwt.generarRefreshToken(usuario.getCorreo());
+        Map<String, Object> response = new HashMap<>();
+        response.put("accessToken", newAccessToken);
+        response.put("refreshToken", newRefreshToken);
+        return ResponseEntity.ok(response);
     }
 
     // ── Buscar usuario por correo ─────────────────────────────────

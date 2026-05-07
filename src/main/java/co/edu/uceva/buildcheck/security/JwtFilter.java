@@ -10,6 +10,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,18 +27,28 @@ public class JwtFilter extends OncePerRequestFilter{
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String encabezado = request.getHeader("Authorization");
+        try{
         if (encabezado != null && encabezado.startsWith("Bearer ")) {
             String token = encabezado.substring(7);
-            if (jwt.ValidarToken(token)) {
-                String correo = jwt.getCorreo(token);
-                String rol = jwt.getRol(token);
-                System.out.println("ROL TOKEN = " + rol);
-                SimpleGrantedAuthority authority = new SimpleGrantedAuthority(rol);
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(correo, null, List.of(authority));
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            if (!jwt.ValidarToken(token)) {
+                throw new JwtException("Token invalido o expirado");
             }
+            if (!jwt.esAccesToken(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            String correo = jwt.getCorreo(token);
+            String rol = jwt.getRol(token);
+            String springRole = rol.startsWith("ROLE_") ? rol : "ROLE_" + rol;
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(springRole);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(correo, null, List.of(authority));
+            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);
+    }catch (JwtException e){
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido o expirado");
+        return;
     }
+}
 }

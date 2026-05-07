@@ -11,6 +11,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import co.edu.uceva.buildcheck.security.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Configuration;
 
@@ -54,6 +55,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/facturas-service/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "No autorizado")
+                    )
+                )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

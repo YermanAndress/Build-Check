@@ -34,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter{
                 throw new JwtException("Token invalido o expirado");
             }
             if (!jwt.esAccesToken(token)) {
-                filterChain.doFilter(request, response);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Se requiere un access token");
                 return;
             }
             String correo = jwt.getCorreo(token);

@@ -14,6 +14,7 @@ import co.edu.uceva.buildcheck.security.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -50,9 +51,16 @@ public class SecurityConfig {
                     "/api/usuarios-service/public-key",
                     "/api/usuarios-service/usuarios"                    
                 ).permitAll()
-                .requestMatchers("/api/materiales-service/**").hasRole("ADMIN")
-                .requestMatchers("/api/movimientos-service/**").hasRole("ADMIN")
-                .requestMatchers("/api/facturas-service/**").hasRole("ADMIN")
+                // Admin tendra acceso a todo
+                .requestMatchers("/api/**").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.GET, "api/materiales-service/**").hasAnyRole("ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+                .requestMatchers(HttpMethod.POST, "/api/materiales-service/**").hasRole("ALMACENISTA")
+                .requestMatchers(HttpMethod.PUT, "/api/materiales-service/**").hasRole("ALMACENISTA")
+                .requestMatchers(HttpMethod.GET, "api/facturas-service/**").hasRole("ALMACENISTA")
+                .requestMatchers(HttpMethod.POST, "api/facturas-service/**").hasRole("ALMACENISTA")
+                .requestMatchers("/api/proyectos-service/**").hasRole("DIRECTOR_OBRA")
+                .requestMatchers("api/movimientos-service/**").hasRole("RESIDENTE")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

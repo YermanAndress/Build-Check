@@ -36,10 +36,10 @@ public class UsuarioController {
 
     @Autowired
     private RsaKeyService rsaKeyService;
-  
+
     @Autowired
     private CifradoSimetrico cifradoSimetrico;
-    
+
     @Autowired
     private Jwt jwt;
 
@@ -57,10 +57,10 @@ public class UsuarioController {
     @GetMapping("/usuarios")
     public ResponseEntity<Map<String, Object>> getUsuarios() {
         List<Usuario> usuarios = usuarioService.findAll();
-        usuarios.forEach(u ->{
-            try{
+        usuarios.forEach(u -> {
+            try {
                 u.setNombre(cifradoSimetrico.descifrar(u.getNombre()));
-            }catch (Exception e){
+            } catch (Exception e) {
                 // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
         });
@@ -70,8 +70,8 @@ public class UsuarioController {
     }
 
     /**
-    * Crear un nuevo usuario
-    */
+     * Crear un nuevo usuario
+     */
     @PostMapping("/usuarios")
     public ResponseEntity<Map<String, Object>> save(@RequestBody Usuario usuario) {
         try {
@@ -84,12 +84,12 @@ public class UsuarioController {
         }
         // Cifrar nombre con algoritmo simetrico
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
-  
+
         Usuario nuevoUsuario = usuarioService.save(usuario);
         // Devolver nombre descifrado al frontend
-        try{
+        try {
             nuevoUsuario.setNombre(cifradoSimetrico.descifrar(nuevoUsuario.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         Map<String, Object> response = new HashMap<>();
@@ -103,9 +103,9 @@ public class UsuarioController {
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
-        try{
+        try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         Map<String, Object> response = new HashMap<>();
@@ -123,9 +123,9 @@ public class UsuarioController {
         // Cifrar nombre antes de guardar
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
         Usuario usuarioActualizado = usuarioService.update(usuario);
-        try{
+        try {
             usuarioActualizado.setNombre(cifradoSimetrico.descifrar(usuarioActualizado.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         Map<String, Object> response = new HashMap<>();
@@ -149,7 +149,7 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            String correo   = rsaKeyService.decrypt(loginRequest.getCorreo());
+            String correo = rsaKeyService.decrypt(loginRequest.getCorreo());
             String password = rsaKeyService.decrypt(loginRequest.getPassword());
 
             Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
@@ -162,19 +162,23 @@ public class UsuarioController {
                         .body(Map.of("error", "Usuario o contraseña incorrecta"));
             }
             // Descifrar nombre antes de devolver
-            try{
+            try {
                 usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
-            }catch (Exception e){
-              // Si ocurre un error al descifrar, dejamos el nombre sin cambios
+            } catch (Exception e) {
+                // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
-            String token = jwt.generarToken(usuario.getCorreo(), usuario.getRol());
+
+            // Generate token with project if user has one, otherwise without project
+            String token;
+            token = jwt.generarToken(usuario.getCorreo(), null, null);
+
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("usuario", usuario);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                  .body(Map.of("error", "Error al desencriptar datos"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Error al desencriptar datos"));
         }
     }
 
@@ -186,9 +190,9 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "No existe el usuario con correo: " + correo));
         }
-        try{
+        try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         return ResponseEntity.ok(usuario);

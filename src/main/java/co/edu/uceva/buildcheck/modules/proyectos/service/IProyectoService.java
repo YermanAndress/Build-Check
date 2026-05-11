@@ -15,4 +15,14 @@ public interface IProyectoService {
     Proyecto update(Proyecto proyecto);
 
     List<Proyecto> findAll();
+
+    /**
+     * Crea un nuevo proyecto y agrega al usuario creador como propietario
+     */
+    Proyecto crearProyecto(Proyecto proyecto, Long usuarioCreadorId);
+
+    /**
+     * Obtiene todos los proyectos de un usuario
+     */
+    List<Proyecto> obtenerProyectosDelUsuario(Long usuarioId);
 }

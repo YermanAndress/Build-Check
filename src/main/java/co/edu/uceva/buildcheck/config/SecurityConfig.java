@@ -8,7 +8,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import co.edu.uceva.buildcheck.security.Jwt;
 import co.edu.uceva.buildcheck.security.JwtFilter;
 
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +21,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
-    public SecurityConfig(JwtFilter jwtFilter){
+    public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
 
@@ -34,29 +33,34 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(configurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/usuarios-service/login",
-                    "/api/usuarios-service/public-key"
-                ).permitAll()
-                .requestMatchers("/api/materiales-service/**").hasRole("ADMIN")
-                .requestMatchers("/api/movimientos-service/**").hasRole("ADMIN")
-                .requestMatchers("/api/facturas-service/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(configurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/usuarios-service/login",
+                                "/api/usuarios-service/public-key",
+                                "/api/usuarios-service/usuarios")
+                        .permitAll()
+                        // Endpoints de proyectos - todos autenticados
+                        .requestMatchers("/api/proyecto-service/proyectos/unirse").authenticated()
+                        .requestMatchers("/api/proyecto-service/proyectos/usuario/**").authenticated()
+                        .requestMatchers("/api/proyecto-service/proyectos/**").authenticated()
+                        // Otros servicios
+                        .requestMatchers("/api/materiales-service/**").authenticated()
+                        .requestMatchers("/api/movimientos-service/**").authenticated()
+                        .requestMatchers("/api/facturas-service/**").authenticated()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
-    CorsConfigurationSource configurationSource(){
+    CorsConfigurationSource configurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Proyecto-Id"));
+        config.setExposedHeaders(List.of("Authorization", "X-Proyecto-Id"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

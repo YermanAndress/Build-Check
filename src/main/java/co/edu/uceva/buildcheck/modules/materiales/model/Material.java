@@ -2,6 +2,7 @@ package co.edu.uceva.buildcheck.modules.materiales.model;
 
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
@@ -43,6 +44,13 @@ public class Material {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "proyecto_id", nullable = false)
+    private Proyecto proyecto;
+
+    @Column(name = "usuario_creador", nullable = false, length = 100)
+    private String usuarioCreador;
+
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = false)
     @JsonIgnore
     private List<Movimiento> movimientos = new ArrayList<>();
@@ -51,8 +59,9 @@ public class Material {
     @JsonIgnore
     private List<FacturaMaterial> facturas = new ArrayList<>();
 
-    @Column(name = "usuario_creador", nullable = false, length = 100)
-    private String usuarioCreador;
+    public Long getProyectoId() {
+        return proyecto != null ? proyecto.getId() : null;
+    }
 
     @PrePersist
     public void prePersist() {

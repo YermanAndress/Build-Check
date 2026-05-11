@@ -48,12 +48,10 @@ public class Jwt {
 
     public String generarToken(String correo, Long proyectoId, RolNombre rolProyecto) {
         Long usuarioId = getUsuarioId(correo);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("rol", rolProyecto.name());
-        claims.put("type", "ACCESS");
         var builder = Jwts.builder()
                 .setSubject(correo)
                 .claim("usuarioId", usuarioId)
+                .claim("type", "ACCESS")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION));
 

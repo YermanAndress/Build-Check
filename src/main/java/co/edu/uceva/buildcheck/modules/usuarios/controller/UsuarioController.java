@@ -169,7 +169,6 @@ public class UsuarioController {
                 // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
 
-            // Generate token with project if user has one, otherwise without project
             String token = jwt.generarToken(usuario.getCorreo(), null, null);
             String refreshToken = jwt.generarRefreshToken(usuario.getCorreo());
 

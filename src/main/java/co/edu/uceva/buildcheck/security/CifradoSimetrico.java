@@ -13,7 +13,7 @@ public class CifradoSimetrico {
 
     @Value("${simetrico.salt}")
     private String SALT_BITS;
-    
+
     public String cifrar(String texto) {
         if (texto == null) {
             return null;
@@ -34,7 +34,7 @@ public class CifradoSimetrico {
         return new StringBuilder(conSalt).reverse().toString();
     }
 
-// DESENCRIPTAR
+    // DESENCRIPTAR
     public String descifrar(String textoCifrado) {
         if (textoCifrado == null || textoCifrado.length() < SALT_BITS.length()) {
             return null;

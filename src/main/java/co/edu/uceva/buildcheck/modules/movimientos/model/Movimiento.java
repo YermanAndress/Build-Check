@@ -1,13 +1,12 @@
 package co.edu.uceva.buildcheck.modules.movimientos.model;
 
-import co.edu.uceva.buildcheck.modules.movimientos.model.tipoMovimiento.TipoMovimientoNombre;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
+import co.edu.uceva.buildcheck.modules.movimientos.model.tipoMovimiento.TipoMovimientoNombre;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
-
-import jakarta.validation.constraints.*;
-import java.time.LocalDateTime;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.Data;
 
 @Entity
@@ -45,7 +44,6 @@ public class Movimiento {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "proyecto_id", nullable = false)
-
     private Proyecto proyecto;
 
     @ManyToOne(optional = false)

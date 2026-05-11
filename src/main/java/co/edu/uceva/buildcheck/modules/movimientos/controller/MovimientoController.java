@@ -1,17 +1,15 @@
 package co.edu.uceva.buildcheck.modules.movimientos.controller;
 
-import co.edu.uceva.buildcheck.modules.movimientos.service.MovimientoService;
-import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
+import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
-
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-
+import co.edu.uceva.buildcheck.modules.movimientos.service.MovimientoService;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/movimientos-service")
@@ -43,7 +41,9 @@ public class MovimientoController {
      * Crear un nuevo movimiento
      */
     @PostMapping("/movimientos")
-    public ResponseEntity<?> save(@RequestBody MovimientoRequest movimientoRequest) {
+    public ResponseEntity<?> save(
+        @RequestBody MovimientoRequest movimientoRequest
+    ) {
         Movimiento nuevoMovimiento = movimientoService.save(movimientoRequest);
 
         Map<String, Object> response = new HashMap<>();
@@ -58,9 +58,13 @@ public class MovimientoController {
      */
     @GetMapping("/movimientos/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
-
-        Movimiento movimiento = movimientoService.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el movimiento con ID: " + id));
+        Movimiento movimiento = movimientoService
+            .findById(id)
+            .orElseThrow(() ->
+                new RecursoNoEncontradoException(
+                    "No existe el movimiento con ID: " + id
+                )
+            );
 
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El movimiento ha sido encontrado con éxito!");
@@ -73,7 +77,10 @@ public class MovimientoController {
      * Actualizar un movimiento
      */
     @PutMapping("/movimientos/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody MovimientoRequest movimiento) {
+    public ResponseEntity<?> update(
+        @PathVariable Long id,
+        @RequestBody MovimientoRequest movimiento
+    ) {
         Movimiento actualizado = movimientoService.update(id, movimiento);
 
         Map<String, Object> response = new HashMap<>();
@@ -88,15 +95,31 @@ public class MovimientoController {
      */
     @DeleteMapping("/movimientos/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
-
-        Movimiento movimiento = movimientoService.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el movimiento con ID: " + id));
+        Movimiento movimiento = movimientoService
+            .findById(id)
+            .orElseThrow(() ->
+                new RecursoNoEncontradoException(
+                    "No existe el movimiento con ID: " + id
+                )
+            );
 
         movimientoService.delete(movimiento);
 
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El movimiento ha sido eliminado con éxito!");
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/proyecto/{proyectoId}/movimientos")
+    public ResponseEntity<Map<String, Object>> getMovimientosByProyecto(
+        @PathVariable Long proyectoId
+    ) {
+        List<Movimiento> movimientos = movimientoService.findByProyectoId(
+            proyectoId
+        );
+        Map<String, Object> response = new HashMap<>();
+        response.put(MOVIMIENTOS, movimientos);
         return ResponseEntity.ok(response);
     }
 }

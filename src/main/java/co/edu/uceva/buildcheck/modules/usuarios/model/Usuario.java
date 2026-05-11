@@ -1,6 +1,6 @@
 package co.edu.uceva.buildcheck.modules.usuarios.model;
 
-import co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre;
+//import co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.*;
@@ -30,10 +30,10 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @NotNull(message = "El rol no puede ser nulo")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RolNombre rol;
+    // @NotNull(message = "El rol no puede ser nulo")
+    // @Enumerated(EnumType.STRING)
+    // @Column(nullable = false)
+    // private RolNombre rol;
 
     @Column(nullable = false)
     private Boolean activo = true;

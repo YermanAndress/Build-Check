@@ -52,13 +52,16 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios").permitAll()
+                        .requestMatchers("/api/proyecto-service/proyectos/usuario/mis-proyectos").permitAll()
 
                         // Solo ADMIN para todo lo demás de usuarios-service
-                        .requestMatchers("/api/usuarios-service/**").hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios-service/**").hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios-service/**").hasAnyRole("OWNER", "ADMIN")
 
                         // Materiales
-                        .requestMatchers(HttpMethod.GET, "/api/materiales-service/**")
-                        .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/materiales-service/**").permitAll()
+                        // .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+
                         .requestMatchers(HttpMethod.POST, "/api/materiales-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA")
                         .requestMatchers(HttpMethod.PUT, "/api/materiales-service/**")
@@ -67,8 +70,9 @@ public class SecurityConfig {
                         .hasAnyRole("OWNER", "ADMIN")
 
                         // Movimientos
-                        .requestMatchers(HttpMethod.GET, "/api/movimientos-service/**")
-                        .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/movimientos-service/**").permitAll()
+                        // .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+
                         .requestMatchers(HttpMethod.POST, "/api/movimientos-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "RESIDENTE")
                         .requestMatchers(HttpMethod.PUT, "/api/movimientos-service/**")
@@ -77,8 +81,9 @@ public class SecurityConfig {
                         .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA")
 
                         // Facturas
-                        .requestMatchers(HttpMethod.GET, "/api/facturas-service/**")
-                        .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA")
+                        .requestMatchers(HttpMethod.GET, "/api/facturas-service/**").permitAll()
+                        // .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA")
+
                         .requestMatchers(HttpMethod.POST, "/api/facturas-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA")
                         .requestMatchers(HttpMethod.PUT, "/api/facturas-service/**")
@@ -87,20 +92,28 @@ public class SecurityConfig {
                         .hasAnyRole("OWNER", "ADMIN")
 
                         // Proyecto
-                        .requestMatchers(HttpMethod.GET, "/api/proyecto-service/**")
-                        .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/proyecto-service/**").permitAll()
+                        // .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+
                         .requestMatchers(HttpMethod.POST, "/api/proyecto-service/**")
-                        .hasAnyRole("OWNER", "ADMIN", "DIRECTOR_OBRA")
+                        .authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/proyecto-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "DIRECTOR_OBRA")
                         .requestMatchers(HttpMethod.DELETE, "/api/proyecto-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "DIRECTOR_OBRA")
+
                         .requestMatchers("/api/proyecto-service/proyectos/unirse")
-                        .hasAnyRole("OWNER", "ADMIN")
+                        .permitAll()
                         .requestMatchers("/api/proyecto-service/proyectos/usuario/**")
-                        .hasAnyRole("OWNER", "ADMIN")
+                        .permitAll()
+                        .requestMatchers("/api/proyecto-service/proyectos/*/seleccionar")
+                        .permitAll()
                         .requestMatchers("/api/proyecto-service/proyectos/**")
-                        .hasAnyRole("OWNER", "ADMIN")
+                        .permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/facturas-service/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/movimientos-service/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/materiales-service/**").permitAll()
 
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
@@ -118,7 +131,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Proyecto-Id"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -3,6 +3,7 @@ package co.edu.uceva.buildcheck.modules.proyectos.controller;
 import co.edu.uceva.buildcheck.exception.NoHayDatosException;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.exception.ValidationException;
+import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
 import co.edu.uceva.buildcheck.modules.proyecto_invitacion.service.IProyectoInvitacionService;
 import co.edu.uceva.buildcheck.modules.proyectos.DTO.*;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
@@ -243,6 +244,35 @@ public class ProyectoRestController {
     }
 
     /**
+     * Seleccionar un proyecto y generar un JWT con contexto de proyecto
+     */
+    @PostMapping("/proyectos/{id}/seleccionar")
+    public ResponseEntity<Map<String, Object>> seleccionarProyecto(
+            @PathVariable Long id,
+            Authentication authentication) {
+        String correo = authentication.getName();
+        Long usuarioId = jwt.getUsuarioId(correo);
+
+        var usuarioProyecto = usuarioProyectoService
+                .obtenerRolUsuarioEnProyecto(usuarioId, id)
+                .orElseThrow(() -> new OperacionNoPermitidaException(
+                        "El usuario no pertenece al proyecto con ID: " + id));
+
+        String nuevoToken = jwt.generarToken(
+                correo,
+                id,
+                usuarioProyecto.getRolProyecto());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("accessToken", nuevoToken);
+        response.put("proyecto_id", id);
+        response.put("rol_proyecto", usuarioProyecto.getRolProyecto().name());
+        response.put(MENSAJE, "Proyecto seleccionado con éxito");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Generar una nueva invitación para un proyecto
      */
     @PostMapping("/proyectos/{id}/invitaciones/generar")
@@ -318,7 +348,7 @@ public class ProyectoRestController {
     @GetMapping("/proyectos/{id}/miembros")
     public ResponseEntity<Map<String, Object>> listarMiembros(
             @PathVariable Long id) {
-        List<UsuarioProyectoDTO> miembros = usuarioProyectoService
+        List<UsuarioProyectoDTO> miembros = (List<UsuarioProyectoDTO>) usuarioProyectoService
                 .obtenerMiembrosDelProyecto(id)
                 .stream()
                 .map(up -> new UsuarioProyectoDTO(

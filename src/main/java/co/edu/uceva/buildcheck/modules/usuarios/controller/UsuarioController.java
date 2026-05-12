@@ -3,6 +3,7 @@ package co.edu.uceva.buildcheck.modules.usuarios.controller;
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
 import co.edu.uceva.buildcheck.security.CifradoSimetrico;
 import co.edu.uceva.buildcheck.security.Jwt;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.service.IUsuarioProyectoService;
 import io.jsonwebtoken.Claims;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
@@ -43,6 +44,9 @@ public class UsuarioController {
 
     @Autowired
     private Jwt jwt;
+
+    @Autowired
+    private IUsuarioProyectoService usuarioProyectoService;
 
     private static final String MENSAJE = "mensaje";
     private static final String USUARIO = "usuario";
@@ -184,7 +188,9 @@ public class UsuarioController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> refresh(
+            @RequestBody Map<String, String> body,
+            @RequestHeader(value = "X-Proyecto-Id", required = false) Long proyectoId) {
         String refreshToken = body.get("refreshToken");
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -200,7 +206,21 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Usuario no encontrado para este token"));
         }
-        String newAccessToken = jwt.generarToken(usuario.getCorreo(), null, null);
+        String newAccessToken;
+        if (proyectoId != null) {
+            var usuarioProyecto = usuarioProyectoService
+                    .obtenerRolUsuarioEnProyecto(usuario.getId(), proyectoId);
+            if (usuarioProyecto.isPresent()) {
+                newAccessToken = jwt.generarToken(
+                        usuario.getCorreo(),
+                        proyectoId,
+                        usuarioProyecto.get().getRolProyecto());
+            } else {
+                newAccessToken = jwt.generarToken(usuario.getCorreo(), null, null);
+            }
+        } else {
+            newAccessToken = jwt.generarToken(usuario.getCorreo(), null, null);
+        }
         String newRefreshToken = jwt.generarRefreshToken(usuario.getCorreo());
         Map<String, Object> response = new HashMap<>();
         response.put("accessToken", newAccessToken);

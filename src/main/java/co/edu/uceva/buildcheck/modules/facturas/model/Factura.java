@@ -2,6 +2,8 @@ package co.edu.uceva.buildcheck.modules.facturas.model;
 
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.proveedores.model.Proveedor;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.validation.constraints.*;
@@ -10,6 +12,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.Data;
 
 @Entity
@@ -27,10 +30,6 @@ public class Factura {
     @NotNull(message = "La fecha no puede estar vacía")
     private LocalDate fecha;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "proveedor_id")
-    private Proveedor proveedor;
-
     @Size(max = 500, message = "La descripción es muy larga")
     private String observaciones;
 
@@ -38,24 +37,23 @@ public class Factura {
     @DecimalMin(value = "0", message = "El total debe ser positivo")
     private Double valorTotal;
 
-    @Column(name = "proyecto_id")
-    private Long proyectoId;
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
 
     @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<FacturaMaterial> items = new ArrayList<>();
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "proyecto_id", nullable = false)
+    private Proyecto proyecto;
 
-    @Column(name = "usuario_creador", nullable = false, length = 100)
-    private String usuarioCreador;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "proveedor_id")
+    private Proveedor proveedor;
 
-    @PrePersist
-    public void prePersist() {
-        this.fechaCreacion = LocalDateTime.now();
-        if (this.usuarioCreador == null) {
-            this.usuarioCreador = "system";
-        }
-    }
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
 }

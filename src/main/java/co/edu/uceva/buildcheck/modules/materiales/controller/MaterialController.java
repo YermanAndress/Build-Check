@@ -74,8 +74,10 @@ public class MaterialController {
      * Crear un nuevo material en un proyecto específico
      */
     @PostMapping("/proyecto/{proyectoId}/materiales")
-    @RequireProyectoAccess(projectIdParam = "proyectoId", allowedRoles = {"ROLE_OWNER", "ROLE_ADMIN", "ROLE_ALMACENISTA"})
-    public ResponseEntity<Map<String, Object>> saveByProyecto(@PathVariable Long proyectoId, @Valid @RequestBody Material material) {
+    @RequireProyectoAccess(projectIdParam = "proyectoId", allowedRoles = { "ROLE_OWNER", "ROLE_ADMIN",
+            "ROLE_ALMACENISTA" })
+    public ResponseEntity<Map<String, Object>> saveByProyecto(@PathVariable Long proyectoId,
+            @Valid @RequestBody Material material) {
         Proyecto proyecto = proyectoRepository.findById(proyectoId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el proyecto con ID: " + proyectoId));
         material.setProyecto(proyecto);
@@ -121,13 +123,15 @@ public class MaterialController {
      * Actualizar un material en un proyecto específico
      */
     @PutMapping("/proyecto/{proyectoId}/materiales/{id}")
-    @RequireProyectoAccess(projectIdParam = "proyectoId", allowedRoles = {"ROLE_OWNER", "ROLE_ADMIN", "ROLE_ALMACENISTA"})
-    public ResponseEntity<Map<String, Object>> updateByProyecto(@PathVariable Long proyectoId, @PathVariable Long id, @Valid @RequestBody Material material) {
+    @RequireProyectoAccess(projectIdParam = "proyectoId", allowedRoles = { "ROLE_OWNER", "ROLE_ADMIN",
+            "ROLE_ALMACENISTA" })
+    public ResponseEntity<Map<String, Object>> updateByProyecto(@PathVariable Long proyectoId, @PathVariable Long id,
+            @Valid @RequestBody Material material) {
         Material materialExistente = materialService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el material con ID: " + id));
-        
+
         // Verificar que el material pertenece al proyecto
-        if (!materialExistente.getProyectoId().equals(proyectoId)) {
+        if (!materialExistente.getProyecto().getId().equals(proyectoId)) {
             throw new RecursoNoEncontradoException("El material no pertenece al proyecto especificado");
         }
 
@@ -159,13 +163,13 @@ public class MaterialController {
      * Eliminar un material en un proyecto específico
      */
     @DeleteMapping("/proyecto/{proyectoId}/materiales/{id}")
-    @RequireProyectoAccess(projectIdParam = "proyectoId", allowedRoles = {"ROLE_OWNER", "ROLE_ADMIN"})
+    @RequireProyectoAccess(projectIdParam = "proyectoId", allowedRoles = { "ROLE_OWNER", "ROLE_ADMIN" })
     public ResponseEntity<Map<String, Object>> deleteByProyecto(@PathVariable Long proyectoId, @PathVariable Long id) {
         Material material = materialService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el material con ID: " + id));
 
         // Verificar que el material pertenece al proyecto
-        if (!material.getProyectoId().equals(proyectoId)) {
+        if (!material.getProyecto().getId().equals(proyectoId)) {
             throw new RecursoNoEncontradoException("El material no pertenece al proyecto especificado");
         }
 

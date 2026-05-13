@@ -28,7 +28,11 @@ public class FacturaRequest {
     @NotBlank(message = "El ID del proyecto es obligatorio")
     private Long proyectoId;
 
+    @NotBlank(message = "El ID del usuario es obligatorio")
+    private Long usuarioId;
+
     @NotNull(message = "Debe incluir al menos un item")
     @Valid
     private List<FacturaItemRequest> items;
+
 }

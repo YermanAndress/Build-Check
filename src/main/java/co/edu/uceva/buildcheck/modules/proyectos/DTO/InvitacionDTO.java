@@ -14,8 +14,8 @@ public class InvitacionDTO {
     private Long id;
     private String token;
     private RolNombre rolPorDefecto;
-    private LocalDateTime expiresAt;
     private Integer usosRestantes;
     private Boolean activo;
-    private LocalDateTime createdAt;
+    private LocalDateTime fechaExpiracion;
+    private LocalDateTime fechaCreacion;
 }

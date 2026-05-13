@@ -5,10 +5,14 @@ import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import co.edu.uceva.buildcheck.modules.materiales.repository.MaterialRepository;
 import co.edu.uceva.buildcheck.modules.movimientos.DTO.MovimientoRequest;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
-import co.edu.uceva.buildcheck.modules.movimientos.model.tipoMovimiento.TipoMovimientoNombre;
+import co.edu.uceva.buildcheck.modules.movimientos.model.TipoMovimiento.TipoMovimientoNombre;
 import co.edu.uceva.buildcheck.modules.movimientos.repository.MovimientoRepository;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
+import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,42 +25,43 @@ public class MovimientoService {
     private final MovimientoRepository movimientoRepository;
     private final IProyectoRepository proyectoRepository;
     private final MaterialRepository materialRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @Autowired
     public MovimientoService(
-        MovimientoRepository movimientoRepository,
-        IProyectoRepository proyectoRepository,
-        MaterialRepository materialRepository
-    ) {
+            MovimientoRepository movimientoRepository,
+            IProyectoRepository proyectoRepository,
+            MaterialRepository materialRepository,
+            UsuarioRepository usuarioRepository) {
         this.movimientoRepository = movimientoRepository;
         this.proyectoRepository = proyectoRepository;
         this.materialRepository = materialRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
     public Movimiento save(MovimientoRequest request) {
-        // 1. Buscamos las entidades relacionadas (Validación)
         Proyecto proyecto = proyectoRepository
-            .findById(request.getProyectoId())
-            .orElseThrow(() ->
-                new RecursoNoEncontradoException("Proyecto no encontrado")
-            );
+                .findById(request.getProyectoId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Proyecto no encontrado"));
 
         Material material = materialRepository
-            .findById(request.getMaterialId())
-            .orElseThrow(() ->
-                new RecursoNoEncontradoException("Material no encontrado")
-            );
+                .findById(request.getMaterialId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Material no encontrado"));
+
+        Usuario usuario = usuarioRepository
+                .findById(request.getUsuarioId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         // 2. Creamos la entidad Movimiento desde el Request
         Movimiento nuevoMovimiento = new Movimiento();
         nuevoMovimiento.setTipoMovimiento(request.getTipoMovimiento());
         nuevoMovimiento.setCantidad(request.getCantidad());
         nuevoMovimiento.setFecha(request.getFecha());
-        nuevoMovimiento.setUsuarioId(request.getUsuarioId());
+        nuevoMovimiento.setUsuario(usuario);
+        nuevoMovimiento.setFechaCreacion(LocalDateTime.now());
         nuevoMovimiento.setEvidenciaFotografica(
-            request.getEvidenciaFotografica()
-        );
+                request.getEvidenciaFotografica());
         nuevoMovimiento.setProyecto(proyecto);
         nuevoMovimiento.setMaterial(material);
 
@@ -69,9 +74,8 @@ public class MovimientoService {
     }
 
     private void actualizarStockMaterial(
-        Material material,
-        Movimiento movimiento
-    ) {
+            Material material,
+            Movimiento movimiento) {
         double cantidad = movimiento.getCantidad();
 
         if (movimiento.getTipoMovimiento() == TipoMovimientoNombre.ENTRADA) {
@@ -81,14 +85,11 @@ public class MovimientoService {
             // 2. ACTUALIZACIÓN DINÁMICA: El nuevo 100% es el stock actual tras la entrada
             material.setStockReferencia(material.getStockActual());
             System.out.println(
-                "Nueva referencia de stock para " +
-                    material.getNombre() +
-                    ": " +
-                    material.getStockReferencia()
-            );
-        } else if (
-            movimiento.getTipoMovimiento() == TipoMovimientoNombre.SALIDA
-        ) {
+                    "Nueva referencia de stock para " +
+                            material.getNombre() +
+                            ": " +
+                            material.getStockReferencia());
+        } else if (movimiento.getTipoMovimiento() == TipoMovimientoNombre.SALIDA) {
             if (material.getStockActual() < cantidad) {
                 throw new IllegalStateException("Stock insuficiente.");
             }
@@ -99,12 +100,11 @@ public class MovimientoService {
 
             if (material.getStockActual() <= stockCritico) {
                 System.out.println(
-                    "ALERTA DE STOCK BAJO DEL MATERIAL: " +
-                        material.getNombre() +
-                        " llegó al 25% de su capacidad referenciada (" +
-                        material.getStockActual() +
-                        ")"
-                );
+                        "ALERTA DE STOCK BAJO DEL MATERIAL: " +
+                                material.getNombre() +
+                                " llegó al 25% de su capacidad referenciada (" +
+                                material.getStockActual() +
+                                ")");
             }
         }
         materialRepository.save(material);
@@ -128,12 +128,9 @@ public class MovimientoService {
     @Transactional
     public Movimiento update(Long id, MovimientoRequest request) {
         Movimiento movimientoExistente = movimientoRepository
-            .findById(id)
-            .orElseThrow(() ->
-                new RecursoNoEncontradoException(
-                    "Movimiento no encontrado con ID: " + id
-                )
-            );
+                .findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Movimiento no encontrado con ID: " + id));
 
         // 1. Revertimos el efecto del movimiento anterior antes de aplicar el nuevo
         revertirStock(movimientoExistente.getMaterial(), movimientoExistente);
@@ -142,16 +139,20 @@ public class MovimientoService {
         movimientoExistente.setTipoMovimiento(request.getTipoMovimiento());
         movimientoExistente.setCantidad(request.getCantidad());
         movimientoExistente.setFecha(request.getFecha());
-        movimientoExistente.setUsuarioId(request.getUsuarioId());
+
+        // Obtener y asignar el usuario
+        Usuario usuario = usuarioRepository
+                .findById(request.getUsuarioId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
+        movimientoExistente.setUsuario(usuario);
+
         movimientoExistente.setEvidenciaFotografica(
-            request.getEvidenciaFotografica()
-        );
+                request.getEvidenciaFotografica());
 
         // 3. Aplicamos la nueva lógica de stock
         actualizarStockMaterial(
-            movimientoExistente.getMaterial(),
-            movimientoExistente
-        );
+                movimientoExistente.getMaterial(),
+                movimientoExistente);
 
         return movimientoRepository.save(movimientoExistente);
     }
@@ -160,12 +161,10 @@ public class MovimientoService {
     private void revertirStock(Material material, Movimiento mov) {
         if (mov.getTipoMovimiento() == TipoMovimientoNombre.ENTRADA) {
             material.setStockActual(
-                material.getStockActual() - mov.getCantidad().intValue()
-            );
+                    material.getStockActual() - mov.getCantidad().intValue());
         } else {
             material.setStockActual(
-                material.getStockActual() + mov.getCantidad().intValue()
-            );
+                    material.getStockActual() + mov.getCantidad().intValue());
         }
         // No tocamos la referencia aquí, solo el actual
         materialRepository.save(material);

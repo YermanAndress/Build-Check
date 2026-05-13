@@ -19,7 +19,7 @@ public interface IProyectoService {
     /**
      * Crea un nuevo proyecto y agrega al usuario creador como propietario
      */
-    Proyecto crearProyecto(Proyecto proyecto, Long usuarioCreadorId);
+    Proyecto crearProyecto(Proyecto proyecto, Long usuarioId);
 
     /**
      * Obtiene todos los proyectos de un usuario

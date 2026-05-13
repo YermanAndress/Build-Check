@@ -3,6 +3,7 @@ package co.edu.uceva.buildcheck.modules.materiales.model;
 import co.edu.uceva.buildcheck.modules.factura_material.model.FacturaMaterial;
 import co.edu.uceva.buildcheck.modules.movimientos.model.Movimiento;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.Data;
 
 @Entity
@@ -45,11 +47,12 @@ public class Material {
     private LocalDateTime fechaCreacion;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
+    @ManyToOne(optional = false)
     @JoinColumn(name = "proyecto_id", nullable = false)
     private Proyecto proyecto;
-
-    @Column(name = "usuario_creador", nullable = false, length = 100)
-    private String usuarioCreador;
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = false)
     @JsonIgnore
@@ -59,15 +62,4 @@ public class Material {
     @JsonIgnore
     private List<FacturaMaterial> facturas = new ArrayList<>();
 
-    public Long getProyectoId() {
-        return proyecto != null ? proyecto.getId() : null;
-    }
-
-    @PrePersist
-    public void prePersist() {
-        this.fechaCreacion = LocalDateTime.now();
-        if (this.usuarioCreador == null) {
-            this.usuarioCreador = "system";
-        }
-    }
 }

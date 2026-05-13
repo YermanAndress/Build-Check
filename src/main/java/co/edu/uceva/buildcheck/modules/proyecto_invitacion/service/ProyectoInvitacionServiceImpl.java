@@ -19,38 +19,39 @@ import java.util.Optional;
 
 @Service
 public class ProyectoInvitacionServiceImpl implements IProyectoInvitacionService {
-    
+
     @Autowired
     private IProyectoInvitacionRepository invitacionRepository;
-    
+
     @Autowired
     private IProyectoRepository proyectoRepository;
-    
+
     @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Override
     @Transactional
-    public ProyectoInvitacion generarInvitacion(Long proyectoId, Long usuarioCreadorId, RolNombre rolDefault) {
+    public ProyectoInvitacion generarInvitacion(Long proyectoId, Long usuarioId, RolNombre rolDefault) {
         Proyecto proyecto = proyectoRepository.findById(proyectoId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Proyecto no encontrado con ID: " + proyectoId));
-        
-        Usuario usuarioCreador = usuarioRepository.findById(usuarioCreadorId)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + usuarioCreadorId));
-        
-        if (usuarioCreador == null) {
-            throw new RecursoNoEncontradoException("Usuario null después de fetch con ID: " + usuarioCreadorId);
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(
+                        () -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + usuarioId));
+
+        if (usuario == null) {
+            throw new RecursoNoEncontradoException("Usuario null después de fetch con ID: " + usuarioId);
         }
-        
+
         ProyectoInvitacion invitacion = new ProyectoInvitacion();
         invitacion.setProyecto(proyecto);
-        invitacion.setCreatedBy(usuarioCreador);
+        invitacion.setCreatedBy(usuario);
         invitacion.setRolPorDefecto(rolDefault);
         invitacion.setToken(ProyectoInvitacion.generateToken());
-        invitacion.setExpiresAt(LocalDateTime.now().plusDays(10));
+        invitacion.setFechaExpiracion(LocalDateTime.now().plusDays(10));
         invitacion.setUsosRestantes(7);
         invitacion.setActivo(true);
-        
+
         return invitacionRepository.save(invitacion);
     }
 
@@ -58,23 +59,23 @@ public class ProyectoInvitacionServiceImpl implements IProyectoInvitacionService
     public ProyectoInvitacion validarYUsarToken(String token) {
         ProyectoInvitacion invitacion = invitacionRepository.findByToken(token)
                 .orElseThrow(() -> new OperacionNoPermitidaException("Token de invitación inválido o no existe"));
-        
+
         if (!invitacion.isValid()) {
             throw new OperacionNoPermitidaException("Token expirado o inactivo");
         }
-        
+
         if (!invitacion.tieneUsosDisponibles()) {
             throw new OperacionNoPermitidaException("Token sin usos disponibles");
         }
-        
+
         // Decrementar usos
         invitacion.decrementarUsos();
-        
+
         // Si se agotaron los usos, desactivar
         if (invitacion.getUsosRestantes() != null && invitacion.getUsosRestantes() == 0) {
             invitacion.setActivo(false);
         }
-        
+
         return invitacionRepository.save(invitacion);
     }
 
@@ -87,7 +88,7 @@ public class ProyectoInvitacionServiceImpl implements IProyectoInvitacionService
     public void revocarInvitacion(String token) {
         ProyectoInvitacion invitacion = invitacionRepository.findByToken(token)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Token no encontrado"));
-        
+
         invitacion.setActivo(false);
         invitacionRepository.save(invitacion);
     }
@@ -96,13 +97,12 @@ public class ProyectoInvitacionServiceImpl implements IProyectoInvitacionService
     public List<ProyectoInvitacion> listarInvitacionesPorProyecto(Long proyectoId) {
         Proyecto proyecto = proyectoRepository.findById(proyectoId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Proyecto no encontrado con ID: " + proyectoId));
-        
+
         return invitacionRepository.findByProyectoAndActivo(proyecto, true);
     }
 
     @Override
     public void limpiarInvitacionesExpiradas() {
-        invitacionRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+        invitacionRepository.deleteByFechaExpiracionBefore(LocalDateTime.now());
     }
 }
-

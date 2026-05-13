@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface IProyectoInvitacionRepository extends JpaRepository<ProyectoInvitacion, Long> {
-    
+
     /**
      * Encuentra una invitación por token
      */
@@ -30,7 +30,7 @@ public interface IProyectoInvitacionRepository extends JpaRepository<ProyectoInv
     /**
      * Elimina invitaciones expiradas
      */
-    long deleteByExpiresAtBefore(LocalDateTime fecha);
+    long deleteByFechaExpiracionBefore(LocalDateTime fecha);
 
     /**
      * Verifica si existe una invitación activa con un token

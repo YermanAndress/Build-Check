@@ -78,10 +78,10 @@ public class ProyectoServiceImpl implements IProyectoService {
 
     @Override
     @Transactional
-    public Proyecto crearProyecto(Proyecto proyecto, Long usuarioCreadorId) {
+    public Proyecto crearProyecto(Proyecto proyecto, Long usuarioId) {
         // Obtener usuario
-        var usuario = usuarioRepository.findById(usuarioCreadorId)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + usuarioCreadorId));
+        var usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + usuarioId));
         
         // Establecer usuario propietario
         proyecto.setUsuarioPropietario(usuario);
@@ -90,7 +90,7 @@ public class ProyectoServiceImpl implements IProyectoService {
         Proyecto nuevoProyecto = proyectoRepository.save(proyecto);
         
         // Agregar usuario como OWNER del proyecto
-        usuarioProyectoService.agregarUsuarioAlProyecto(usuarioCreadorId, nuevoProyecto.getId(), RolNombre.ROLE_OWNER);
+        usuarioProyectoService.agregarUsuarioAlProyecto(usuarioId, nuevoProyecto.getId(), RolNombre.ROLE_OWNER);
         
         return nuevoProyecto;
     }

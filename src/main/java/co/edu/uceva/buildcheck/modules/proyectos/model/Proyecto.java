@@ -24,18 +24,11 @@ public class Proyecto {
     private Long id;
 
     @NotEmpty(message = "El nombre no puede estar vacio")
-    @Size(
-        min = 2,
-        max = 200,
-        message = "El tamaño del nombre debe estar entre 2 y 20 caracteres"
-    )
+    @Size(min = 2, max = 200, message = "El tamaño del nombre debe estar entre 2 y 20 caracteres")
     @Column(nullable = false)
     private String nombre;
 
-    @Size(
-        max = 300,
-        message = "La descripcion no puede tener mas de 255 caracteres"
-    )
+    @Size(max = 300, message = "La descripcion no puede tener mas de 255 caracteres")
     private String descripcion;
 
     @NotEmpty(message = "La ubicacion no puede estar vacia")
@@ -52,11 +45,7 @@ public class Proyecto {
     @Enumerated(EnumType.STRING)
     private EstadoNombre estado;
 
-    @OneToMany(
-        mappedBy = "proyecto",
-        cascade = CascadeType.ALL,
-        orphanRemoval = false
-    )
+    @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL, orphanRemoval = false)
     @JsonIgnore
     private List<Movimiento> movimientos = new ArrayList<>();
 
@@ -64,19 +53,11 @@ public class Proyecto {
     @JoinColumn(name = "usuario_propietario_id")
     private Usuario usuarioPropietario;
 
-    @OneToMany(
-        mappedBy = "proyecto",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<UsuarioProyecto> miembros = new ArrayList<>();
 
-    @OneToMany(
-        mappedBy = "proyecto",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ProyectoInvitacion> invitaciones = new ArrayList<>();
 
@@ -84,14 +65,11 @@ public class Proyecto {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "usuario_creador", nullable = false, length = 100)
-    private String usuarioCreador;
-
     @PrePersist
     public void prePersist() {
-        this.fechaCreacion = LocalDateTime.now();
-        if (this.usuarioCreador == null) {
-            this.usuarioCreador = "system";
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
         }
     }
+
 }

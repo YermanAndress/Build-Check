@@ -34,10 +34,10 @@ public class FacturaController {
     @GetMapping("/facturas")
     public ResponseEntity<Map<String, Object>> getFacturas() {
         List<FacturaDTO> facturas = facturaService
-            .findAll()
-            .stream()
-            .map(facturaService::toDTO)
-            .toList();
+                .findAll()
+                .stream()
+                .map(facturaService::toDTO)
+                .toList();
         Map<String, Object> response = new HashMap<>();
         response.put(FACTURAS, facturas);
         return ResponseEntity.ok(response);
@@ -48,8 +48,7 @@ public class FacturaController {
      */
     @PostMapping("/facturas")
     public ResponseEntity<Map<String, Object>> save(
-        @RequestBody FacturaRequest factura
-    ) {
+            @RequestBody FacturaRequest factura) {
         Factura nuevoFactura = facturaService.save(factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido creado con éxito!");
@@ -63,12 +62,9 @@ public class FacturaController {
     @GetMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Factura producto = facturaService
-            .findById(id)
-            .orElseThrow(() ->
-                new RecursoNoEncontradoException(
-                    "No existe la factura con el ID: " + id
-                )
-            );
+                .findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe la factura con el ID: " + id));
         FacturaDTO facturaDTO = facturaService.toDTO(producto);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido encontrado con éxito!");
@@ -81,9 +77,8 @@ public class FacturaController {
      */
     @PutMapping("/facturas/{id}")
     public ResponseEntity<?> update(
-        @PathVariable Long id,
-        @Valid @RequestBody FacturaRequest factura
-    ) {
+            @PathVariable Long id,
+            @Valid @RequestBody FacturaRequest factura) {
         Factura facturaActualizado = facturaService.update(id, factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido actualizado con exito");
@@ -97,12 +92,9 @@ public class FacturaController {
     @DeleteMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         Factura factura = facturaService
-            .findById(id)
-            .orElseThrow(() ->
-                new RecursoNoEncontradoException(
-                    "No existe la factura con el ID: " + id
-                )
-            );
+                .findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe la factura con el ID: " + id));
 
         facturaService.delete(factura);
         Map<String, Object> response = new HashMap<>();
@@ -112,13 +104,12 @@ public class FacturaController {
 
     @GetMapping("/proyecto/{proyectoId}/facturas")
     public ResponseEntity<Map<String, Object>> getFacturasByProyecto(
-        @PathVariable Long proyectoId
-    ) {
+            @PathVariable Long proyectoId) {
         List<FacturaDTO> facturas = facturaService
-            .findByProyectoId(proyectoId)
-            .stream()
-            .map(facturaService::toDTO)
-            .toList();
+                .findByProyectoId(proyectoId)
+                .stream()
+                .map(facturaService::toDTO)
+                .toList();
         Map<String, Object> response = new HashMap<>();
         response.put(FACTURAS, facturas);
         return ResponseEntity.ok(response);

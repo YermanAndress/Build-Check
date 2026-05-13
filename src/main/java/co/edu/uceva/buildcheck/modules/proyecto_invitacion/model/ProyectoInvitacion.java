@@ -18,7 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProyectoInvitacion {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,8 +34,11 @@ public class ProyectoInvitacion {
     @Column(name = "rol_por_defecto", nullable = false)
     private RolNombre rolPorDefecto;
 
-    @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
+    @Column(name = "fecha_expiracion", nullable = false)
+    private LocalDateTime fechaExpiracion;
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
 
     @Column(name = "usos_restantes")
     private Integer usosRestantes;
@@ -43,22 +46,19 @@ public class ProyectoInvitacion {
     @Column(name = "activo", nullable = false)
     private Boolean activo;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "creado_por", nullable = false)
     private Usuario createdBy;
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        this.fechaCreacion = LocalDateTime.now();
         if (this.token == null || this.token.isEmpty()) {
             this.token = generateToken();
         }
-        if (this.expiresAt == null) {
+        if (this.fechaExpiracion == null) {
             // 10 días desde ahora
-            this.expiresAt = LocalDateTime.now().plusDays(10);
+            this.fechaExpiracion = LocalDateTime.now().plusDays(10);
         }
         if (this.usosRestantes == null) {
             this.usosRestantes = 7;
@@ -82,7 +82,7 @@ public class ProyectoInvitacion {
      * Valida si el token es válido (no expiró y está activo)
      */
     public boolean isValid() {
-        return this.activo && LocalDateTime.now().isBefore(this.expiresAt);
+        return this.activo && LocalDateTime.now().isBefore(this.fechaExpiracion);
     }
 
     /**

@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IProyectoInvitacionService {
-    
+
     /**
      * Genera una nueva invitación para un proyecto
      */
-    ProyectoInvitacion generarInvitacion(Long proyectoId, Long usuarioCreadorId, RolNombre rolDefault);
+    ProyectoInvitacion generarInvitacion(Long proyectoId, Long usuarioId, RolNombre rolDefault);
 
     /**
      * Valida y usa un token de invitación

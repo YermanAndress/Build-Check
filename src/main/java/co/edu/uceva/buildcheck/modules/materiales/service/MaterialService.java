@@ -124,8 +124,10 @@ public class MaterialService {
         materialDTO.setUnidadMedida(material.getUnidadMedida());
         materialDTO.setPrecioUnitario(material.getPrecioUnitario());
         materialDTO.setStockActual(material.getStockActual());
+        materialDTO.setStockReferencia(material.getStockReferencia());
         materialDTO.setFechaCreacion(material.getFechaCreacion());
-        materialDTO.setUsuarioCreador(material.getUsuarioCreador());
+        materialDTO.setUsuarioId(material.getUsuario().getId());
+        materialDTO.setProyectoId(material.getProyecto().getId());
         materialDTO.setFacturas(
                 material.getFacturas().stream().map(fm -> {
                     FacturaMaterialDTO fMaterialDTO = new FacturaMaterialDTO();
@@ -133,6 +135,9 @@ public class MaterialService {
                     fMaterialDTO.setCantidad(fm.getCantidad());
                     fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
                     fMaterialDTO.setFacturaId(fm.getFactura().getId());
+                    fMaterialDTO.setMaterialId(fm.getMaterial().getId());
+                    fMaterialDTO.setNombreMaterial(fm.getMaterial().getNombre());
+
                     return fMaterialDTO;
                 }).toList());
         return materialDTO;

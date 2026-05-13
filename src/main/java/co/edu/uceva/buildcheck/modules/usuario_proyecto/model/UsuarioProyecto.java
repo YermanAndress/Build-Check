@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsuarioProyecto {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,12 +34,12 @@ public class UsuarioProyecto {
     @Column(name = "rol_proyecto", nullable = false)
     private RolNombre rolProyecto;
 
-    @Column(name = "fecha_agregacion", nullable = false, updatable = false)
-    private LocalDateTime fechaAgregacion;
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
 
     @PrePersist
     public void prePersist() {
-        this.fechaAgregacion = LocalDateTime.now();
+        this.fechaCreacion = LocalDateTime.now();
         if (this.rolProyecto == null) {
             this.rolProyecto = RolNombre.ROLE_VIEWER;
         }

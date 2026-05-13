@@ -7,15 +7,19 @@ import co.edu.uceva.buildcheck.exception.OperacionNoPermitidaException;
 import co.edu.uceva.buildcheck.modules.proyecto_invitacion.service.IProyectoInvitacionService;
 import co.edu.uceva.buildcheck.modules.proyectos.DTO.*;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Estados.EstadoNombre;
 import co.edu.uceva.buildcheck.modules.proyectos.service.IProyectoService;
 import co.edu.uceva.buildcheck.modules.usuario_proyecto.service.IUsuarioProyectoService;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre;
 import co.edu.uceva.buildcheck.security.Jwt;
+import co.edu.uceva.buildcheck.security.CifradoSimetrico;
 import co.edu.uceva.buildcheck.security.annotations.RequireProyectoAccess;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,6 +35,7 @@ public class ProyectoRestController {
     private final IProyectoInvitacionService invitacionService;
     private final IUsuarioProyectoService usuarioProyectoService;
     private final Jwt jwt;
+    private final CifradoSimetrico cifradoSimetrico;
 
     private static final String MENSAJE = "mensaje";
     private static final String PROYECTO = "proyecto";
@@ -40,11 +45,13 @@ public class ProyectoRestController {
             IProyectoService proyectoService,
             IProyectoInvitacionService invitacionService,
             IUsuarioProyectoService usuarioProyectoService,
-            Jwt jwt) {
+            Jwt jwt,
+            CifradoSimetrico cifradoSimetrico) {
         this.proyectoService = proyectoService;
         this.invitacionService = invitacionService;
         this.usuarioProyectoService = usuarioProyectoService;
         this.jwt = jwt;
+        this.cifradoSimetrico = cifradoSimetrico;
     }
 
     /**
@@ -87,15 +94,27 @@ public class ProyectoRestController {
                 .obtenerProyectosDelUsuario(usuarioId)
                 .stream()
                 .map(up -> {
+                    Proyecto p = up.getProyecto();
                     ProyectoDTO dto = new ProyectoDTO();
-                    dto.setId(up.getProyecto().getId());
-                    dto.setNombre(up.getProyecto().getNombre());
-                    dto.setDescripcion(up.getProyecto().getDescripcion());
-                    dto.setUbicacion(up.getProyecto().getUbicacion());
-                    dto.setPresupuesto(up.getProyecto().getPresupuesto());
-                    dto.setEstado(up.getProyecto().getEstado());
-                    dto.setFechaCreacion(up.getProyecto().getFechaCreacion());
-                    dto.setRolDelUsuario(up.getRolProyecto()); // ← de usuario_proyecto
+                    dto.setId(p.getId());
+                    dto.setNombre(p.getNombre());
+                    dto.setDescripcion(p.getDescripcion());
+                    dto.setUbicacion(p.getUbicacion());
+                    dto.setPresupuesto(p.getPresupuesto());
+                    dto.setEstado(p.getEstado());
+                    dto.setFechaCreacion(p.getFechaCreacion());
+                    dto.setRolDelUsuario(up.getRolProyecto());
+
+                    // Asignar campos faltantes para evitar "Unexpected null value"
+                    if (p.getUsuarioPropietario() != null) {
+                        dto.setUsuarioPropietarioId(p.getUsuarioPropietario().getId());
+                        // Desencriptar nombre del propietario
+                        String nombreDescifrado = cifradoSimetrico.descifrar(p.getUsuarioPropietario().getNombre());
+                        dto.setUsuarioPropietarioNombre(nombreDescifrado);
+                    }
+                    dto.setTotalMiembros(p.getMiembros() != null ? p.getMiembros().size() : 0);
+                    dto.setTotalInvitacionesActivas(p.getInvitaciones() != null ? p.getInvitaciones().size() : 0);
+
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -125,10 +144,7 @@ public class ProyectoRestController {
         proyecto.setDescripcion(request.getDescripcion());
         proyecto.setUbicacion(request.getUbicacion());
         proyecto.setPresupuesto(request.getPresupuesto());
-        proyecto.setEstado(
-                Enum.valueOf(
-                        co.edu.uceva.buildcheck.modules.proyectos.model.Estados.EstadoNombre.class,
-                        request.getEstado()));
+        proyecto.setEstado(Enum.valueOf(EstadoNombre.class, request.getEstado()));
 
         Proyecto nuevoProyecto = proyectoService.crearProyecto(
                 proyecto,
@@ -144,8 +160,19 @@ public class ProyectoRestController {
         dto.setPresupuesto(nuevoProyecto.getPresupuesto());
         dto.setEstado(nuevoProyecto.getEstado());
         dto.setFechaCreacion(nuevoProyecto.getFechaCreacion());
-        dto.setRolDelUsuario(co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre.ROLE_OWNER); // Creator is
-                                                                                                         // always owner
+        dto.setRolDelUsuario(RolNombre.ROLE_OWNER); // Creator is always owner
+
+        // Asignar campos faltantes para evitar "Unexpected null value"
+        if (nuevoProyecto.getUsuarioPropietario() != null) {
+            dto.setUsuarioPropietarioId(nuevoProyecto.getUsuarioPropietario().getId());
+            // Desencriptar nombre del propietario
+            String nombreDescifrado = cifradoSimetrico.descifrar(nuevoProyecto.getUsuarioPropietario().getNombre());
+            dto.setUsuarioPropietarioNombre(nombreDescifrado);
+        }
+        dto.setTotalMiembros(nuevoProyecto.getMiembros() != null ? nuevoProyecto.getMiembros().size() : 1);
+
+        dto.setTotalInvitacionesActivas(
+                nuevoProyecto.getInvitaciones() != null ? nuevoProyecto.getInvitaciones().size() : 0);
 
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El proyecto ha sido creado con éxito");
@@ -298,7 +325,7 @@ public class ProyectoRestController {
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "Invitación generada con éxito");
         response.put("token", invitacion.getToken());
-        response.put("expires_at", invitacion.getExpiresAt());
+        response.put("fecha_expiracion", invitacion.getFechaExpiracion());
         response.put("usos_restantes", invitacion.getUsosRestantes());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -317,10 +344,10 @@ public class ProyectoRestController {
                         inv.getId(),
                         inv.getToken(),
                         inv.getRolPorDefecto(),
-                        inv.getExpiresAt(),
                         inv.getUsosRestantes(),
                         inv.getActivo(),
-                        inv.getCreatedAt()))
+                        inv.getFechaExpiracion(),
+                        inv.getFechaCreacion()))
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();
@@ -356,7 +383,7 @@ public class ProyectoRestController {
                         up.getUsuario().getNombre(),
                         up.getUsuario().getCorreo(),
                         up.getRolProyecto(),
-                        up.getFechaAgregacion()))
+                        up.getFechaCreacion()))
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();

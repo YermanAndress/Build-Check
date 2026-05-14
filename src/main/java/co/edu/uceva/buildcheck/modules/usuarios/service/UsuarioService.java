@@ -1,6 +1,8 @@
 package co.edu.uceva.buildcheck.modules.usuarios.service;
 
 import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.repository.IUsuarioProyectoRepository;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.model.UsuarioProyecto;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
@@ -17,6 +19,9 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private IUsuarioProyectoRepository usuarioProyectoRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -66,5 +71,15 @@ public class UsuarioService {
 
     public Optional<Usuario> findByCorreo(String correo) {
         return usuarioRepository.findByCorreo(correo);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<UsuarioProyecto> findFirstProyectoByUsuario(Long usuarioId) {
+        Optional<Usuario> usuario = usuarioRepository.findById(usuarioId);
+        if (usuario.isEmpty()) {
+            return Optional.empty();
+        }
+        List<UsuarioProyecto> proyectos = usuarioProyectoRepository.findByUsuario(usuario.get());
+        return proyectos.isEmpty() ? Optional.empty() : Optional.of(proyectos.get(0));
     }
 }

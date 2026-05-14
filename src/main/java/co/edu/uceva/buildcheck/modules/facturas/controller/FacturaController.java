@@ -1,19 +1,17 @@
 package co.edu.uceva.buildcheck.modules.facturas.controller;
 
-import co.edu.uceva.buildcheck.modules.facturas.service.FacturaService;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
-import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
-
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
+import co.edu.uceva.buildcheck.modules.facturas.service.FacturaService;
 import jakarta.validation.Valid;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/facturas-service")
@@ -35,7 +33,8 @@ public class FacturaController {
      */
     @GetMapping("/facturas")
     public ResponseEntity<Map<String, Object>> getFacturas() {
-        List<FacturaDTO> facturas = facturaService.findAll()
+        List<FacturaDTO> facturas = facturaService
+                .findAll()
                 .stream()
                 .map(facturaService::toDTO)
                 .toList();
@@ -48,7 +47,8 @@ public class FacturaController {
      * Crear una nueva factura
      */
     @PostMapping("/facturas")
-    public ResponseEntity<Map<String, Object>> save(@RequestBody FacturaRequest factura) {
+    public ResponseEntity<Map<String, Object>> save(
+            @RequestBody FacturaRequest factura) {
         Factura nuevoFactura = facturaService.save(factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido creado con éxito!");
@@ -61,8 +61,10 @@ public class FacturaController {
      */
     @GetMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
-        Factura producto = facturaService.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la factura con el ID: " + id));
+        Factura producto = facturaService
+                .findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe la factura con el ID: " + id));
         FacturaDTO facturaDTO = facturaService.toDTO(producto);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido encontrado con éxito!");
@@ -74,7 +76,9 @@ public class FacturaController {
      * Actualizar un factura
      */
     @PutMapping("/facturas/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody FacturaRequest factura) {
+    public ResponseEntity<?> update(
+            @PathVariable Long id,
+            @Valid @RequestBody FacturaRequest factura) {
         Factura facturaActualizado = facturaService.update(id, factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La factura ha sido actualizado con exito");
@@ -87,12 +91,27 @@ public class FacturaController {
      */
     @DeleteMapping("/facturas/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
-        Factura factura = facturaService.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la factura con el ID: " + id));
+        Factura factura = facturaService
+                .findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe la factura con el ID: " + id));
 
         facturaService.delete(factura);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "La Factura Ha sido eliminado con exito");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/proyecto/{proyectoId}/facturas")
+    public ResponseEntity<Map<String, Object>> getFacturasByProyecto(
+            @PathVariable Long proyectoId) {
+        List<FacturaDTO> facturas = facturaService
+                .findByProyectoId(proyectoId)
+                .stream()
+                .map(facturaService::toDTO)
+                .toList();
+        Map<String, Object> response = new HashMap<>();
+        response.put(FACTURAS, facturas);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,5 +1,6 @@
 package co.edu.uceva.buildcheck.modules.materiales.DTO;
 
+import co.edu.uceva.buildcheck.modules.materiales.model.UnidadMedida;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Data;
@@ -12,11 +13,11 @@ public class MaterialStockBajoDTO {
     private String nombre;
     private Double stockActual;
     private Double stockReferencia;
-    private String unidadMedida;
+    private UnidadMedida unidadMedida;
     private String mensaje;
 
     public MaterialStockBajoDTO(Long id, String nombre, Double stockActual, Double stockReferencia,
-            String unidadMedida) {
+            UnidadMedida unidadMedida) {
         this.id = id;
         this.nombre = nombre;
         this.stockActual = stockActual;

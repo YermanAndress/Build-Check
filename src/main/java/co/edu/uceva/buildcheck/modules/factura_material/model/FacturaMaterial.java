@@ -2,17 +2,18 @@ package co.edu.uceva.buildcheck.modules.factura_material.model;
 
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+
 import jakarta.persistence.Id;
 import lombok.Data;
 
@@ -29,10 +30,6 @@ public class FacturaMaterial {
     @JsonBackReference
     private Factura factura;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "material_id", nullable = false)
-    private Material material;
-
     @Column(name = "cantidad", nullable = false)
     private Double cantidad;
 
@@ -42,14 +39,12 @@ public class FacturaMaterial {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "usuario_creador", nullable = false, length = 100)
-    private String usuarioCreador;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "material_id", nullable = false)
+    private Material material;
 
-    @PrePersist
-    public void prePersist() {
-        this.fechaCreacion = LocalDateTime.now();
-        if (this.usuarioCreador == null) {
-            this.usuarioCreador = "system";
-        }
-    }
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
 }

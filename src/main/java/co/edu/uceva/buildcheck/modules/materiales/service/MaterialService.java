@@ -44,6 +44,20 @@ public class MaterialService {
                 .toList();
     }
 
+    public List<MaterialStockBajoDTO> obtenerAlertasStockBajoByProyecto(Long proyectoId) {
+        List<Material> materialesCriticos = materialRepository.findMaterialesBajoStockByProyectoId(proyectoId);
+
+        // Convertimos cada Material en un DTO
+        return materialesCriticos.stream()
+                .map(m -> new MaterialStockBajoDTO(
+                        m.getId(),
+                        m.getNombre(),
+                        m.getStockActual(),
+                        m.getStockReferencia(),
+                        m.getUnidadMedida()))
+                .toList();
+    }
+
     // Guarda un material nuevo
     @Transactional
     public Material save(Material material) {
@@ -90,6 +104,18 @@ public class MaterialService {
         return materialRepository.findAll();
     }
 
+    // Lista materiales por proyecto
+    @Transactional(readOnly = true)
+    public List<Material> findByProyectoId(Long proyectoId) {
+        return materialRepository.findByProyectoId(proyectoId);
+    }
+
+    // Busca materiales por proyecto y nombre
+    @Transactional(readOnly = true)
+    public List<Material> findByProyectoIdAndNombreContaining(Long proyectoId, String nombre) {
+        return materialRepository.findByProyectoIdAndNombreContaining(proyectoId, nombre);
+    }
+
     public MaterialDTO toDTO(Material material) {
         MaterialDTO materialDTO = new MaterialDTO();
         materialDTO.setId(material.getId());
@@ -98,8 +124,10 @@ public class MaterialService {
         materialDTO.setUnidadMedida(material.getUnidadMedida());
         materialDTO.setPrecioUnitario(material.getPrecioUnitario());
         materialDTO.setStockActual(material.getStockActual());
+        materialDTO.setStockReferencia(material.getStockReferencia());
         materialDTO.setFechaCreacion(material.getFechaCreacion());
-        materialDTO.setUsuarioCreador(material.getUsuarioCreador());
+        materialDTO.setUsuarioId(material.getUsuario().getId());
+        materialDTO.setProyectoId(material.getProyecto().getId());
         materialDTO.setFacturas(
                 material.getFacturas().stream().map(fm -> {
                     FacturaMaterialDTO fMaterialDTO = new FacturaMaterialDTO();
@@ -107,6 +135,9 @@ public class MaterialService {
                     fMaterialDTO.setCantidad(fm.getCantidad());
                     fMaterialDTO.setPrecioUnitario(fm.getPrecioUnitario());
                     fMaterialDTO.setFacturaId(fm.getFactura().getId());
+                    fMaterialDTO.setMaterialId(fm.getMaterial().getId());
+                    fMaterialDTO.setNombreMaterial(fm.getMaterial().getNombre());
+
                     return fMaterialDTO;
                 }).toList());
         return materialDTO;
@@ -114,5 +145,9 @@ public class MaterialService {
 
     public List<MaterialDTO> findAllDTO() {
         return materialRepository.findAll().stream().map(this::toDTO).toList();
+    }
+
+    public List<MaterialDTO> findByProyectoIdDTO(Long proyectoId) {
+        return materialRepository.findByProyectoId(proyectoId).stream().map(this::toDTO).toList();
     }
 }

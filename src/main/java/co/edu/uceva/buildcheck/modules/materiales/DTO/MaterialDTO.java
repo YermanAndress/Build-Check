@@ -15,8 +15,10 @@ public class MaterialDTO {
     UnidadMedida unidadMedida;
     Double precioUnitario;
     Double stockActual;
+    Double stockReferencia;
     LocalDateTime fechaCreacion;
-    String usuarioCreador;
+    Long usuarioId;
+    Long proyectoId;
 
     private List<FacturaMaterialDTO> facturas;
 }

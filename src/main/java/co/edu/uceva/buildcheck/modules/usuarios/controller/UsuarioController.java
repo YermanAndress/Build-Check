@@ -3,6 +3,8 @@ package co.edu.uceva.buildcheck.modules.usuarios.controller;
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
 import co.edu.uceva.buildcheck.security.CifradoSimetrico;
 import co.edu.uceva.buildcheck.security.Jwt;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.service.IUsuarioProyectoService;
+import io.jsonwebtoken.Claims;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
@@ -36,12 +38,15 @@ public class UsuarioController {
 
     @Autowired
     private RsaKeyService rsaKeyService;
-  
+
     @Autowired
     private CifradoSimetrico cifradoSimetrico;
-    
+
     @Autowired
     private Jwt jwt;
+
+    @Autowired
+    private IUsuarioProyectoService usuarioProyectoService;
 
     private static final String MENSAJE = "mensaje";
     private static final String USUARIO = "usuario";
@@ -57,10 +62,10 @@ public class UsuarioController {
     @GetMapping("/usuarios")
     public ResponseEntity<Map<String, Object>> getUsuarios() {
         List<Usuario> usuarios = usuarioService.findAll();
-        usuarios.forEach(u ->{
-            try{
+        usuarios.forEach(u -> {
+            try {
                 u.setNombre(cifradoSimetrico.descifrar(u.getNombre()));
-            }catch (Exception e){
+            } catch (Exception e) {
                 // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
         });
@@ -70,8 +75,8 @@ public class UsuarioController {
     }
 
     /**
-    * Crear un nuevo usuario
-    */
+     * Crear un nuevo usuario
+     */
     @PostMapping("/usuarios")
     public ResponseEntity<Map<String, Object>> save(@RequestBody Usuario usuario) {
         try {
@@ -84,12 +89,12 @@ public class UsuarioController {
         }
         // Cifrar nombre con algoritmo simetrico
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
-  
+
         Usuario nuevoUsuario = usuarioService.save(usuario);
         // Devolver nombre descifrado al frontend
-        try{
+        try {
             nuevoUsuario.setNombre(cifradoSimetrico.descifrar(nuevoUsuario.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         Map<String, Object> response = new HashMap<>();
@@ -103,9 +108,9 @@ public class UsuarioController {
     public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
-        try{
+        try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         Map<String, Object> response = new HashMap<>();
@@ -123,9 +128,9 @@ public class UsuarioController {
         // Cifrar nombre antes de guardar
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
         Usuario usuarioActualizado = usuarioService.update(usuario);
-        try{
+        try {
             usuarioActualizado.setNombre(cifradoSimetrico.descifrar(usuarioActualizado.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         Map<String, Object> response = new HashMap<>();
@@ -149,7 +154,7 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            String correo   = rsaKeyService.decrypt(loginRequest.getCorreo());
+            String correo = rsaKeyService.decrypt(loginRequest.getCorreo());
             String password = rsaKeyService.decrypt(loginRequest.getPassword());
 
             Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
@@ -162,26 +167,30 @@ public class UsuarioController {
                         .body(Map.of("error", "Usuario o contraseña incorrecta"));
             }
             // Descifrar nombre antes de devolver
-            try{
+            try {
                 usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
-            }catch (Exception e){
-              // Si ocurre un error al descifrar, dejamos el nombre sin cambios
+            } catch (Exception e) {
+                // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
-            String accessToken = jwt.generarAccesToken(usuario.getCorreo(), usuario.getRol());
+
+            String token = jwt.generarToken(usuario.getCorreo(), null, null);
             String refreshToken = jwt.generarRefreshToken(usuario.getCorreo());
+
             Map<String, Object> response = new HashMap<>();
-            response.put("accessToken", accessToken);
+            response.put("accessToken", token);
             response.put("refreshToken", refreshToken);
             response.put("usuario", usuario);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                  .body(Map.of("error", "Error al desencriptar datos"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Error al desencriptar datos"));
         }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody Map<String, String> body){
+    public ResponseEntity<?> refresh(
+            @RequestBody Map<String, String> body,
+            @RequestHeader(value = "X-Proyecto-Id", required = false) Long proyectoId) {
         String refreshToken = body.get("refreshToken");
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -191,13 +200,27 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Refresh token invalido o expirado"));
         }
-        String correo = jwt.getCorreo(refreshToken);
-        Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
+        Claims correo = jwt.getClaims(refreshToken);
+        Usuario usuario = usuarioService.findByCorreo(correo.getSubject()).orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Usuario no encontrado para este token"));
         }
-        String newAccessToken = jwt.generarAccesToken(usuario.getCorreo(), usuario.getRol());
+        String newAccessToken;
+        if (proyectoId != null) {
+            var usuarioProyecto = usuarioProyectoService
+                    .obtenerRolUsuarioEnProyecto(usuario.getId(), proyectoId);
+            if (usuarioProyecto.isPresent()) {
+                newAccessToken = jwt.generarToken(
+                        usuario.getCorreo(),
+                        proyectoId,
+                        usuarioProyecto.get().getRolProyecto());
+            } else {
+                newAccessToken = jwt.generarToken(usuario.getCorreo(), null, null);
+            }
+        } else {
+            newAccessToken = jwt.generarToken(usuario.getCorreo(), null, null);
+        }
         String newRefreshToken = jwt.generarRefreshToken(usuario.getCorreo());
         Map<String, Object> response = new HashMap<>();
         response.put("accessToken", newAccessToken);
@@ -213,9 +236,9 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "No existe el usuario con correo: " + correo));
         }
-        try{
+        try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
-        }catch (Exception e){
+        } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
         return ResponseEntity.ok(usuario);

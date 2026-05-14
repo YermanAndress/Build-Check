@@ -2,13 +2,17 @@ package co.edu.uceva.buildcheck.modules.proveedores.model;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import java.time.LocalDateTime;
+
+import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
 
 @Entity
 @Table(name = "proveedores")
@@ -24,14 +28,8 @@ public class Proveedor {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "usuario_creador", nullable = false, length = 100)
-    private String usuarioCreador;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
-    @PrePersist
-    public void prePersist() {
-        this.fechaCreacion = LocalDateTime.now();
-        if (this.usuarioCreador == null) {
-            this.usuarioCreador = "system";
-        }
-    }
 }

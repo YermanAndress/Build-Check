@@ -43,14 +43,17 @@ public class JwtFilter extends OncePerRequestFilter {
                 String correo = jwt.getCorreo(token);
                 String rolProyecto = jwt.getRolProyecto(token);
 
-                // Si no hay rol en el token (usuario sin proyecto), asignar un rol por defecto
-                String springRole = (rolProyecto != null && !rolProyecto.isEmpty())
-                        ? (rolProyecto.startsWith("ROLE_") ? rolProyecto : "ROLE_" + rolProyecto)
-                        : "ROLE_AUTHENTICATED";
+                List<SimpleGrantedAuthority> authorities;
+                if (rolProyecto != null && !rolProyecto.isEmpty()) {
+                    // Si no hay rol en el token (usuario sin proyecto), asignar un rol por defecto
+                    String springRole = rolProyecto.startsWith("ROLE_") ? rolProyecto : "ROLE_" + rolProyecto;
+                    authorities = List.of(new SimpleGrantedAuthority(springRole));
+                } else{
+                    authorities = List.of();
+                }
 
-                SimpleGrantedAuthority authority = new SimpleGrantedAuthority(springRole);
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        correo, null, List.of(authority));
+                        correo, null, authorities);
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

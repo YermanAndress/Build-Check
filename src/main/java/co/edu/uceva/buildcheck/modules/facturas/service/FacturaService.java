@@ -222,6 +222,8 @@ public class FacturaService {
                 facturaMaterial.setCantidad(itemRequest.getCantidad());
                 facturaMaterial.setPrecioUnitario(
                         itemRequest.getPrecioUnitario());
+                facturaMaterial.setFechaCreacion(LocalDateTime.now());
+                facturaMaterial.setUsuario(facturaExistente.getUsuario());
                 facturaExistente.getItems().add(facturaMaterial);
             }
         }

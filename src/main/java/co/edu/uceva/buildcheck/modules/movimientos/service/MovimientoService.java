@@ -80,7 +80,7 @@ public class MovimientoService {
 
         if (movimiento.getTipoMovimiento() == TipoMovimientoNombre.ENTRADA) {
             // 1. Aumentamos el stock actual
-            material.setStockActual(material.getStockActual() + (int) cantidad);
+            material.setStockActual(material.getStockActual() + cantidad);
 
             // 2. ACTUALIZACIÓN DINÁMICA: El nuevo 100% es el stock actual tras la entrada
             material.setStockReferencia(material.getStockActual());
@@ -93,7 +93,7 @@ public class MovimientoService {
             if (material.getStockActual() < cantidad) {
                 throw new IllegalStateException("Stock insuficiente.");
             }
-            material.setStockActual(material.getStockActual() - (int) cantidad);
+            material.setStockActual(material.getStockActual() - cantidad);
 
             // Comparamos el actual contra el 25% de la última referencia (bodega llena)
             double stockCritico = material.getStockReferencia() * 0.25;
@@ -122,7 +122,7 @@ public class MovimientoService {
 
     @Transactional(readOnly = true)
     public List<Movimiento> findAll() {
-        return movimientoRepository.findAll();
+        return movimientoRepository.findAllOrdenado();
     }
 
     @Transactional
@@ -161,10 +161,10 @@ public class MovimientoService {
     private void revertirStock(Material material, Movimiento mov) {
         if (mov.getTipoMovimiento() == TipoMovimientoNombre.ENTRADA) {
             material.setStockActual(
-                    material.getStockActual() - mov.getCantidad().intValue());
+                    material.getStockActual() - mov.getCantidad());
         } else {
             material.setStockActual(
-                    material.getStockActual() + mov.getCantidad().intValue());
+                    material.getStockActual() + mov.getCantidad());
         }
         // No tocamos la referencia aquí, solo el actual
         materialRepository.save(material);

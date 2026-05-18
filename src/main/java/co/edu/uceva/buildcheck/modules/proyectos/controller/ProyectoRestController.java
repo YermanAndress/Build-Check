@@ -85,6 +85,10 @@ public class ProyectoRestController {
     @GetMapping("/proyectos/usuario/mis-proyectos")
     public ResponseEntity<Map<String, Object>> getMisProyectos(
             Authentication authentication) {
+                if (authentication == null || !authentication.isAuthenticated()) {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                .body(Map.of("mensaje", "Se requiere autenticacion"));
+                }
         String correo = authentication.getName();
         Long usuarioId = jwt.getUsuarioId(correo);
 

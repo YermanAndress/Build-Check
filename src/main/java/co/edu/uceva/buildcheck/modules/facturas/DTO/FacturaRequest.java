@@ -25,10 +25,10 @@ public class FacturaRequest {
     @DecimalMin(value = "0", message = "El valor total debe ser positivo")
     private Double valorTotal;
 
-    @NotBlank(message = "El ID del proyecto es obligatorio")
+    @NotNull(message = "El ID del proyecto es obligatorio")
     private Long proyectoId;
 
-    @NotBlank(message = "El ID del usuario es obligatorio")
+    @NotNull(message = "El ID del usuario es obligatorio")
     private Long usuarioId;
 
     @NotNull(message = "Debe incluir al menos un item")

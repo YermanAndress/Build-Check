@@ -11,6 +11,7 @@ import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.login.RsaKeyService;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
+import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -263,5 +264,29 @@ public class UsuarioController {
     @GetMapping("/public-key")
     public ResponseEntity<Map<String, String>> getPublicKey() {
         return ResponseEntity.ok(Map.of("publicKey", rsaKeyService.getPublicKeyBase64()));
+    }
+
+    @PostMapping("/usuarios/telegram/vincular")
+    public ResponseEntity<?> vincularTelegram(@RequestBody Map<String, String> body) {
+        String correo = body.get("correo");
+        String password = body.get("password");
+        String telegramChatId = body.get("telegramChatId");
+
+        if (correo == null || password == null || telegramChatId == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Correo, password y telegram chat id son requeridos"));
+        }
+        Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
+        if (usuario == null || !passwordEncoder.matches(password, usuario.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Credenciales inválidas"));
+        }
+        usuario.setTelegramChatId(telegramChatId);
+        usuarioService.save(usuario);
+        return ResponseEntity.ok(Map.of(
+            "mensaje", "Telegram vinculado exitosamente",
+            "nombre", usuario.getNombre(),
+            "rol", usuario.getRol().getNombre()
+        ));
     }
 }

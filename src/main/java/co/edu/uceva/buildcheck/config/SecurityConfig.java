@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers("/api/proyecto-service/proyectos/usuario/mis-proyectos").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/vincular").permitAll()
 
                         // Solo ADMIN para todo lo demás de usuarios-service
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios-service/**").hasAnyRole("OWNER", "ADMIN")

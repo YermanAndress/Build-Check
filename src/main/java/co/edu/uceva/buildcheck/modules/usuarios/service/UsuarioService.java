@@ -82,4 +82,9 @@ public class UsuarioService {
         List<UsuarioProyecto> proyectos = usuarioProyectoRepository.findByUsuario(usuario.get());
         return proyectos.isEmpty() ? Optional.empty() : Optional.of(proyectos.get(0));
     }
+
+    @Transactional
+    public Usuario guardarPasswordDirecto(Usuario usuario) {
+        return usuarioRepository.save(usuario);
+    }
 }

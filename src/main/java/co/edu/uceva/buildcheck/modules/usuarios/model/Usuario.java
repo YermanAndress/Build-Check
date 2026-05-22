@@ -32,7 +32,7 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = true, length = 255)
     private String telefono;
 
     @Column(name = "telegram_chat_id")

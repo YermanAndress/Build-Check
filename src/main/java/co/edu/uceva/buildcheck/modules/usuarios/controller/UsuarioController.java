@@ -11,8 +11,6 @@ import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.login.RsaKeyService;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
-import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +64,7 @@ public class UsuarioController {
         usuarios.forEach(u -> {
             try {
                 u.setNombre(cifradoSimetrico.descifrar(u.getNombre()));
+                u.setTelefono(cifradoSimetrico.descifrar(u.getTelefono()));
             } catch (Exception e) {
                 // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
@@ -90,11 +89,17 @@ public class UsuarioController {
         }
         // Cifrar nombre con algoritmo simetrico
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
+        if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+            usuario.setTelefono(cifradoSimetrico.cifrar(usuario.getTelefono()));            
+        }
 
         Usuario nuevoUsuario = usuarioService.save(usuario);
         // Devolver nombre descifrado al frontend
         try {
             nuevoUsuario.setNombre(cifradoSimetrico.descifrar(nuevoUsuario.getNombre()));
+            if (nuevoUsuario.getTelefono() != null && !nuevoUsuario.getTelefono().isBlank()) {
+                nuevoUsuario.setTelefono(cifradoSimetrico.descifrar(nuevoUsuario.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -111,6 +116,9 @@ public class UsuarioController {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
         try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+            if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+                usuario.setTelefono(cifradoSimetrico.descifrar(usuario.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -128,9 +136,15 @@ public class UsuarioController {
         usuario.setId(id); // Aseguramos que se actualice el ID correcto
         // Cifrar nombre antes de guardar
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
+        if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+            usuario.setTelefono(cifradoSimetrico.cifrar(usuario.getTelefono()));
+        }
         Usuario usuarioActualizado = usuarioService.update(usuario);
         try {
             usuarioActualizado.setNombre(cifradoSimetrico.descifrar(usuarioActualizado.getNombre()));
+            if (usuarioActualizado.getTelefono() != null && !usuarioActualizado.getTelefono().isBlank()) {
+                usuarioActualizado.setTelefono(cifradoSimetrico.descifrar(usuarioActualizado.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -170,6 +184,9 @@ public class UsuarioController {
             // Descifrar nombre antes de devolver
             try {
                 usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+                if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+                    usuario.setTelefono(cifradoSimetrico.descifrar(usuario.getTelefono()));
+                }
             } catch (Exception e) {
                 // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
@@ -239,6 +256,9 @@ public class UsuarioController {
         }
         try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+            if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+                usuario.setTelefono(cifradoSimetrico.descifrar(usuario.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -255,7 +275,7 @@ public class UsuarioController {
         }
         String nuevaPassword = GenerarPassword.generarPassword();
         usuario.setPassword(passwordEncoder.encode(nuevaPassword));
-        usuarioService.update(usuario);
+        usuarioService.guardarPasswordDirecto(usuario);
         emailService.enviarCorreo(correo, "Recuperación de contraseña", "Tu nueva contraseña es: " + nuevaPassword);
         return ResponseEntity.ok(Map.of("mensaje", "Se ha enviado una nueva contraseña a tu correo"));
     }
@@ -282,11 +302,16 @@ public class UsuarioController {
                     .body(Map.of("error", "Credenciales inválidas"));
         }
         usuario.setTelegramChatId(telegramChatId);
-        usuarioService.save(usuario);
+        usuarioService.update(usuario);
+        String nombre = usuario.getNombre();
+        try{
+            nombre = cifradoSimetrico.descifrar(nombre);
+        }catch (Exception e){
+            
+        }
         return ResponseEntity.ok(Map.of(
             "mensaje", "Telegram vinculado exitosamente",
-            "nombre", usuario.getNombre(),
-            "rol", usuario.getRol().getNombre()
+            "nombre", nombre
         ));
     }
 }

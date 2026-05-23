@@ -382,12 +382,20 @@ public class ProyectoRestController {
         List<UsuarioProyectoDTO> miembros = (List<UsuarioProyectoDTO>) usuarioProyectoService
                 .obtenerMiembrosDelProyecto(id)
                 .stream()
-                .map(up -> new UsuarioProyectoDTO(
-                        up.getUsuario().getId(),
-                        up.getUsuario().getNombre(),
-                        up.getUsuario().getCorreo(),
-                        up.getRolProyecto(),
-                        up.getFechaCreacion()))
+                .map(up -> {
+                        String nombreDescrifrado;
+                        try{
+                                nombreDescrifrado = cifradoSimetrico.descifrar(up.getUsuario().getNombre());
+                        }catch(Exception e){
+                                nombreDescrifrado = up.getUsuario().getNombre();
+                        }
+                        return new UsuarioProyectoDTO(
+                                up.getUsuario().getId(),
+                                nombreDescrifrado,
+                                up.getUsuario().getCorreo(),
+                                up.getRolProyecto(),
+                                up.getFechaCreacion());
+                })
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();

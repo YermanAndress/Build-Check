@@ -84,11 +84,6 @@ public class MovimientoService {
 
             // 2. ACTUALIZACIÓN DINÁMICA: El nuevo 100% es el stock actual tras la entrada
             material.setStockReferencia(material.getStockActual());
-            System.out.println(
-                    "Nueva referencia de stock para " +
-                            material.getNombre() +
-                            ": " +
-                            material.getStockReferencia());
         } else if (movimiento.getTipoMovimiento() == TipoMovimientoNombre.SALIDA) {
             if (material.getStockActual() < cantidad) {
                 throw new IllegalStateException("Stock insuficiente.");
@@ -99,12 +94,6 @@ public class MovimientoService {
             double stockCritico = material.getStockReferencia() * 0.25;
 
             if (material.getStockActual() <= stockCritico) {
-                System.out.println(
-                        "ALERTA DE STOCK BAJO DEL MATERIAL: " +
-                                material.getNombre() +
-                                " llegó al 25% de su capacidad referenciada (" +
-                                material.getStockActual() +
-                                ")");
             }
         }
         materialRepository.save(material);

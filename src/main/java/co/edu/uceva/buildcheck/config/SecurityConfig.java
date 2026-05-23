@@ -110,7 +110,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,
                             "/api/proyecto-service/proyectos/*/miembros/rol").hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE,
-                            "/api/proyecto-service/proyectos/*/miembros*/").hasAnyRole("OWNER", "ADMIN")
+                            "/api/proyecto-service/proyectos/*/miembros/*").hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.GET,
                             "/api/proyecto-service/**").permitAll()
                         .requestMatchers(HttpMethod.POST,

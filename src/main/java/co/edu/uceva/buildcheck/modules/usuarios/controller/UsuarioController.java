@@ -302,7 +302,7 @@ public class UsuarioController {
                     .body(Map.of("error", "Credenciales inválidas"));
         }
         usuario.setTelegramChatId(telegramChatId);
-        usuarioService.update(usuario);
+        usuarioService.guardarPasswordDirecto(usuario);
         String nombre = usuario.getNombre();
         try{
             nombre = cifradoSimetrico.descifrar(nombre);

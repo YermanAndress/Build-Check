@@ -93,8 +93,7 @@ public class OCRService {
 
         RequestBody body = RequestBody.create(
                 requestBody.toString(),
-                MediaType.get("application/json; charset=utf-8")
-        );
+                MediaType.get("application/json; charset=utf-8"));
 
         Request request = new Request.Builder()
                 .url(GROQ_API_URL)
@@ -128,7 +127,7 @@ public class OCRService {
     private String buildGroqPrompt(String ocrText) {
         return """
                 Extrae la siguiente información de este texto OCR de una factura y devuelve SOLO un JSON válido sin explicaciones adicionales:
-                
+
                 {
                   "numeroFactura": "número de la factura o número de documento",
                   "fecha": "fecha en formato yyyy-MM-dd, si no está disponible usa la fecha actual",
@@ -144,7 +143,7 @@ public class OCRService {
                     }
                   ]
                 }
-                
+
                 IMPORTANTE:
                 - Devuelve SOLO el JSON, sin markdown ni explicaciones
                 - Si no encuentras un campo, déjalo como null
@@ -163,9 +162,10 @@ public class OCRService {
                 - Usa lenguaje claro en espanol y corrige palabras mal OCRizadas cuando sea evidente
                 - Evita cadenas sin sentido; si no se puede inferir un material, usa null o un nombre simple coherente
                 - Observaciones debe ser una frase corta y clara en espanol, eliminando caracteres basura
-                
+
                 Texto OCR:
-                """ + ocrText;
+                """
+                + ocrText;
     }
 
     public void validateExtractedData(String jsonData) throws JsonSyntaxException {

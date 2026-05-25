@@ -108,7 +108,8 @@ public class FacturaService {
         // 5. Items y movimientos (sin cambios)
         List<FacturaMaterial> items = new ArrayList<>();
         for (FacturaItemRequest itemRequest : request.getItems()) {
-            Material material = materialRepository.findByNombreIgnoreCaseAndProyectoId(itemRequest.getNombre(), proyecto.getId())
+            Material material = materialRepository
+                    .findByNombreIgnoreCaseAndProyectoId(itemRequest.getNombre(), proyecto.getId())
                     .orElseGet(() -> {
                         Material nuevo = new Material();
                         nuevo.setNombre(itemRequest.getNombre());
@@ -226,7 +227,8 @@ public class FacturaService {
                                             itemRequest.getMaterialId()));
                 } else {
                     material = materialRepository
-                            .findByNombreIgnoreCaseAndProyectoId(itemRequest.getNombre(), facturaExistente.getProyecto().getId())
+                            .findByNombreIgnoreCaseAndProyectoId(itemRequest.getNombre(),
+                                    facturaExistente.getProyecto().getId())
                             .orElseThrow(() -> new RecursoNoEncontradoException(
                                     "Material no encontrado con nombre: " +
                                             itemRequest.getNombre()));

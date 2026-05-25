@@ -115,8 +115,20 @@
             <artifactId>javacv-platform</artifactId>
             <version>1.5.10</version>
          </dependency>
+          <!-- Groq API Client -->
+          <dependency>
+              <groupId>com.google.code.gson</groupId>
+              <artifactId>gson</artifactId>
+              <version>2.10.1</version>
+          </dependency>
+          <!-- OkHttp para requests HTTP -->
+          <dependency>
+              <groupId>com.squareup.okhttp3</groupId>
+              <artifactId>okhttp</artifactId>
+              <version>4.11.0</version>
+          </dependency>
 
-    </dependencies>
+     </dependencies>
 
     <build>
         <plugins>

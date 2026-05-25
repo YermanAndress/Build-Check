@@ -105,11 +105,11 @@
               <groupId>org.aspectj</groupId>
               <artifactId>aspectjweaver</artifactId>
           </dependency>
-          <!-- Google Cloud Vision API -->
+          <!-- Tesseract OCR (Tess4J) -->
           <dependency>
-              <groupId>com.google.cloud</groupId>
-              <artifactId>google-cloud-vision</artifactId>
-              <version>3.38.0</version>
+              <groupId>net.sourceforge.tess4j</groupId>
+              <artifactId>tess4j</artifactId>
+              <version>5.11.0</version>
           </dependency>
           <!-- Groq API Client -->
           <dependency>

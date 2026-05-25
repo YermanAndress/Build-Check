@@ -31,6 +31,8 @@ public class FacturaRequest {
     @NotNull(message = "El ID del usuario es obligatorio")
     private Long usuarioId;
 
+    private String urlImagen;
+
     @NotNull(message = "Debe incluir al menos un item")
     @Valid
     private List<FacturaItemRequest> items;

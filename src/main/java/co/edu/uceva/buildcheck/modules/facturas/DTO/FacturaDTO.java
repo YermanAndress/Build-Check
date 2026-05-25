@@ -14,5 +14,6 @@ public class FacturaDTO {
     private String proveedor;
     private Double valorTotal;
     private Long proyectoId;
+    private String urlImagen;
     private List<FacturaMaterialDTO> items;
 }

@@ -40,6 +40,7 @@ public class FacturaService {
     private final MovimientoRepository movimientoRepository;
     private final IProyectoRepository iProyectoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final SupabaseStorageService supabaseStorageService;
 
     @Autowired
     public FacturaService(
@@ -49,7 +50,8 @@ public class FacturaService {
             MaterialRepository materialRepository,
             MovimientoRepository movimientoRepository,
             IProyectoRepository iProyectoRepository,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository,
+            SupabaseStorageService supabaseStorageService) {
         this.facturaRepository = facturaRepository;
         this.facturaMaterialRepository = facturaMaterialRepository;
         this.proveedorRepository = proveedorRepository;
@@ -57,6 +59,7 @@ public class FacturaService {
         this.movimientoRepository = movimientoRepository;
         this.iProyectoRepository = iProyectoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.supabaseStorageService = supabaseStorageService;
     }
 
     /**
@@ -99,6 +102,7 @@ public class FacturaService {
         factura.setValorTotal(request.getValorTotal());
         factura.setProyecto(proyecto);
         factura.setUsuario(usuario);
+        factura.setUrlImagen(request.getUrlImagen());
         factura.setFechaCreacion(LocalDateTime.now());
 
         // 5. Items y movimientos (sin cambios)
@@ -143,6 +147,13 @@ public class FacturaService {
         }
         factura.setItems(items);
         return facturaRepository.save(factura);
+    }
+
+    @Transactional
+    public Factura saveWithImage(FacturaRequest request, byte[] imageData, String fileName) throws Exception {
+        String urlImagen = supabaseStorageService.uploadImage(imageData, fileName);
+        request.setUrlImagen(urlImagen);
+        return save(request);
     }
 
     /**
@@ -246,6 +257,7 @@ public class FacturaService {
         facturaDTO.setProveedor(factura.getProveedor().getNombre());
         facturaDTO.setValorTotal(factura.getValorTotal());
         facturaDTO.setProyectoId(factura.getProyecto().getId());
+        facturaDTO.setUrlImagen(factura.getUrlImagen());
         facturaDTO.setItems(
                 factura
                         .getItems()

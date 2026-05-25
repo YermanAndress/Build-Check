@@ -87,6 +87,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/facturas-service/**").permitAll()
                         // .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA")
 
+                        // OCR endpoint is public
+                        .requestMatchers(HttpMethod.POST, "/api/facturas-service/ocr").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/facturas-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA")
                         .requestMatchers(HttpMethod.PUT, "/api/facturas-service/**")

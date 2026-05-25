@@ -2,31 +2,38 @@ package co.edu.uceva.buildcheck.modules.facturas.controller;
 
 import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaDTO;
+import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaOCRResponse;
 import co.edu.uceva.buildcheck.modules.facturas.DTO.FacturaRequest;
 import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.facturas.service.FacturaService;
+import co.edu.uceva.buildcheck.modules.facturas.service.FacturaOCRService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/facturas-service")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
+@Slf4j
 public class FacturaController {
 
     private final FacturaService facturaService;
+    private final FacturaOCRService facturaOCRService;
 
     private static final String MENSAJE = "mensaje";
     private static final String FACTURA = "factura";
     private static final String FACTURAS = "facturas";
-
-    public FacturaController(FacturaService facturaService) {
-        this.facturaService = facturaService;
-    }
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     /**
      * Listar todas las facturas
@@ -113,5 +120,85 @@ public class FacturaController {
         Map<String, Object> response = new HashMap<>();
         response.put(FACTURAS, facturas);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint OCR: Procesa imagen de factura con Vision + Groq
+     * POST /api/facturas-service/ocr
+     * 
+     * Parameters:
+     * - file: MultipartFile (jpg/png, max 5MB)
+     * - proyectoId: Long
+     * - usuarioId: Long
+     */
+    @PostMapping(value = "/ocr", consumes = "multipart/form-data")
+    public ResponseEntity<Map<String, Object>> processOCR(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("proyectoId") Long proyectoId,
+            @RequestParam("usuarioId") Long usuarioId) {
+
+        log.info("Endpoint OCR llamado - archivo: {}, proyecto: {}, usuario: {}", 
+                file.getOriginalFilename(), proyectoId, usuarioId);
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Validación: archivo vacío
+            if (file.isEmpty()) {
+                log.warn("Archivo vacío recibido");
+                response.put(MENSAJE, "El archivo no puede estar vacío");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // Validación: tipo de archivo
+            String contentType = file.getContentType();
+            if (!isValidImageType(contentType)) {
+                log.warn("Tipo de archivo inválido: {}", contentType);
+                response.put(MENSAJE, "Formato de archivo inválido. Solo se permiten JPG y PNG");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // Validación: tamaño máximo
+            if (file.getSize() > MAX_FILE_SIZE) {
+                log.warn("Archivo muy grande: {} bytes", file.getSize());
+                response.put(MENSAJE, "El archivo no puede exceder 5MB");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // Procesar OCR
+            log.info("Iniciando procesamiento OCR...");
+            FacturaOCRResponse ocrResponse = facturaOCRService.procesarImagenOCR(
+                    file.getBytes(),
+                    file.getOriginalFilename(),
+                    proyectoId,
+                    usuarioId
+            );
+
+            log.info("OCR completado exitosamente");
+            response.put(MENSAJE, "Factura procesada exitosamente");
+            response.put("factura", ocrResponse);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Validación fallida: {}", e.getMessage());
+            response.put(MENSAJE, e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+        } catch (IOException e) {
+            log.error("Error procesando OCR", e);
+            response.put(MENSAJE, "Error al procesar la imagen");
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(response);
+        } catch (Exception e) {
+            log.error("Error inesperado en OCR", e);
+            response.put(MENSAJE, "Error interno del servidor");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    private boolean isValidImageType(String contentType) {
+        return contentType != null && (
+                contentType.equals("image/jpeg") ||
+                contentType.equals("image/jpg") ||
+                contentType.equals("image/png")
+        );
     }
 }

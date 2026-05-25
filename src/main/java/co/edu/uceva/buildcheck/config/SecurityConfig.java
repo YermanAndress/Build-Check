@@ -51,12 +51,14 @@ public class SecurityConfig {
                                 "/api/usuarios-service/public-key")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios/telegram/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/*/proyecto").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/*/proyecto")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers("/api/proyecto-service/proyectos/usuario/mis-proyectos").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/recuperar").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/vincular").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/vincular")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reportes/semanal").permitAll()
                         .requestMatchers("/api/clasificador/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/materiales-service/materiales/buscar").permitAll()
@@ -104,29 +106,41 @@ public class SecurityConfig {
 
                         // Proyecto
                         .requestMatchers(HttpMethod.GET,
-                            "/api/proyecto-service/proyectos/usuario/mis-proyectos").permitAll()
+                                "/api/proyecto-service/proyectos/usuario/mis-proyectos")
+                        .permitAll()
                         .requestMatchers(HttpMethod.POST,
-                            "/api/proyecto-service/proyectos/unirse").authenticated()
+                                "/api/proyecto-service/proyectos/unirse")
+                        .authenticated()
                         .requestMatchers(HttpMethod.POST,
-                            "/api/proyecto-service/proyectos/*/seleccionar").authenticated()
+                                "/api/proyecto-service/proyectos/*/seleccionar")
+                        .authenticated()
                         .requestMatchers(HttpMethod.GET,
-                            "/api/proyecto-service/proyectos/*/invitaciones").authenticated()
+                                "/api/proyecto-service/proyectos/*/invitaciones")
+                        .authenticated()
                         .requestMatchers(HttpMethod.POST,
-                            "/api/proyecto-service/proyectos/*/invitaciones/generar").hasAnyRole("OWNER", "ADMIN")
+                                "/api/proyecto-service/proyectos/*/invitaciones/generar")
+                        .hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.GET,
-                            "/api/proyecto-service/proyectos/*/miembros").authenticated()
+                                "/api/proyecto-service/proyectos/*/miembros")
+                        .authenticated()
                         .requestMatchers(HttpMethod.PUT,
-                            "/api/proyecto-service/proyectos/*/miembros/rol").hasAnyRole("OWNER", "ADMIN")
+                                "/api/proyecto-service/proyectos/*/miembros/rol")
+                        .hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE,
-                            "/api/proyecto-service/proyectos/*/miembros/*").hasAnyRole("OWNER", "ADMIN")
+                                "/api/proyecto-service/proyectos/*/miembros/*")
+                        .hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(HttpMethod.GET,
-                            "/api/proyecto-service/**").permitAll()
+                                "/api/proyecto-service/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.POST,
-                            "/api/proyecto-service/**").authenticated()
+                                "/api/proyecto-service/**")
+                        .authenticated()
                         .requestMatchers(HttpMethod.PUT,
-                            "/api/proyecto-service/**").hasAnyRole("OWNER", "ADMIN", "DIRECTOR_OBRA")
+                                "/api/proyecto-service/**")
+                        .hasAnyRole("OWNER", "ADMIN", "DIRECTOR_OBRA")
                         .requestMatchers(HttpMethod.DELETE,
-                            "/api/proyecto-service/**").hasAnyRole("OWNER", "ADMIN")
+                                "/api/proyecto-service/**")
+                        .hasAnyRole("OWNER", "ADMIN")
 
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex

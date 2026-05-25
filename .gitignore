@@ -26,7 +26,6 @@ logs/
 rsa_private.key
 rsa_public.key
 gcp-vision.json
-tessdata/
 
 # ==========================================
 # IDEs & Editores

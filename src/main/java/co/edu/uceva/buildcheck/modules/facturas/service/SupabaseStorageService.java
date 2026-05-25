@@ -19,17 +19,32 @@ import java.util.UUID;
 @Slf4j
 public class SupabaseStorageService {
 
-    @Value("${SUPABASE_URL}")
-    private String supabaseUrl;
-
-    @Value("${SUPABASE_SERVICE_ROLE_KEY}")
-    private String serviceRoleKey;
-
-    @Value("${SUPABASE_BUCKET}")
-    private String bucket;
+    private final String supabaseUrl;
+    private final String serviceRoleKey;
+    private final String bucket;
+    private final OkHttpClient httpClient;
 
     private static final int TIMEOUT_SECONDS = 15;
     private static final Gson gson = new Gson();
+    private static final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
+    private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
+
+    // Inyección limpia por constructor (Recomendado en Spring)
+    public SupabaseStorageService(
+            @Value("${SUPABASE_URL}") String supabaseUrl,
+            @Value("${SUPABASE_SERVICE_ROLE_KEY}") String serviceRoleKey,
+            @Value("${SUPABASE_BUCKET}") String bucket) {
+        this.supabaseUrl = supabaseUrl;
+        this.serviceRoleKey = serviceRoleKey;
+        this.bucket = bucket;
+
+        // El cliente se instancia una sola vez y se reutiliza
+        this.httpClient = new OkHttpClient.Builder()
+                .connectTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
+                .writeTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
+                .readTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
+                .build();
+    }
 
     public String uploadImage(byte[] imageData, String fileName) throws IOException {
         log.info("Iniciando carga de imagen a Supabase Storage. Archivo: {}", fileName);
@@ -37,13 +52,7 @@ public class SupabaseStorageService {
         String uploadPath = "facturas/" + UUID.randomUUID() + "-" + fileName;
         String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + uploadPath;
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
-                .writeTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
-                .readTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
-                .build();
-
-        RequestBody body = RequestBody.create(imageData, MediaType.parse("image/jpeg"));
+        RequestBody body = RequestBody.create(imageData, MEDIA_TYPE_JPEG);
 
         Request request = new Request.Builder()
                 .url(uploadUrl)
@@ -51,9 +60,10 @@ public class SupabaseStorageService {
                 .post(body)
                 .build();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                log.error("Error al subir imagen a Supabase. Status: {}. Body: {}", response.code(), response.body());
+                log.error("Error al subir imagen a Supabase. Status: {}. Body: {}", response.code(),
+                        response.body() != null ? response.body().string() : "null");
                 throw new IOException("Supabase upload error: " + response.code());
             }
             log.info("Imagen cargada exitosamente. Path: {}", uploadPath);
@@ -62,19 +72,19 @@ public class SupabaseStorageService {
     }
 
     public String getSignedUrl(String path) throws IOException {
+        // CORREGIDO: Se cambió 'uploadPath' por el parámetro real 'path'
+        String signedUrl = generateSignedUrl(path);
+        log.info("URL firmada obtenida exitosamente: {}", signedUrl);
+        return signedUrl;
+    }
+
+    private String generateSignedUrl(String path) throws IOException {
         log.info("Generando URL firmada para: {}", path);
 
         String expiryUrl = supabaseUrl + "/storage/v1/object/sign/" + bucket + "/" + path;
-
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
-                .readTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
-                .build();
-
-        // Solicitar URL firmada válida por 1 hora (3600 segundos)
         String requestBody = "{\"expiresIn\": 3600}";
-        
-        RequestBody body = RequestBody.create(requestBody, MediaType.get("application/json"));
+
+        RequestBody body = RequestBody.create(requestBody, MEDIA_TYPE_JSON);
 
         Request request = new Request.Builder()
                 .url(expiryUrl)
@@ -82,9 +92,10 @@ public class SupabaseStorageService {
                 .post(body)
                 .build();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                log.error("Error generando URL firmada. Status: {}. Body: {}", response.code(), response.body());
+                log.error("Error generando URL firmada. Status: {}. Body: {}", response.code(),
+                        response.body() != null ? response.body().string() : "null");
                 throw new IOException("Signed URL generation error: " + response.code());
             }
 
@@ -92,7 +103,7 @@ public class SupabaseStorageService {
             log.debug("Respuesta de URL firmada: {}", responseBody);
 
             JsonObject json = gson.fromJson(responseBody, JsonObject.class);
-            String signedUrl = json.has("signedURL")
+            String signedUrl = (json != null && json.has("signedURL"))
                     ? json.get("signedURL").getAsString()
                     : null;
 
@@ -100,6 +111,7 @@ public class SupabaseStorageService {
                 throw new IOException("Signed URL missing in response");
             }
 
+            // CORREGIDO: Se eliminó el código inalcanzable.
             if (signedUrl.startsWith("http")) {
                 return signedUrl;
             }

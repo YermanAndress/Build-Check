@@ -29,31 +29,27 @@ public class FacturaOCRService {
         log.info("Iniciando procesamiento OCR para imagen: {}", fileName);
 
         try {
-            // 1. Subir imagen a Supabase
-            log.info("Paso 1/4: Subiendo imagen a Supabase Storage");
-            String urlImagen = supabaseService.uploadImage(imageData, fileName);
-            log.info("Imagen subida exitosamente: {}", urlImagen);
-
-            // 2. Extraer texto con Google Vision
-            log.info("Paso 2/4: Extrayendo texto con Google Vision");
+            // 1. Extraer texto con Tesseract
+            log.info("Paso 1/3: Extrayendo texto con Tesseract");
             String rawOCRText = ocrService.extractTextFromImage(imageData);
             if (rawOCRText.isEmpty()) {
-                log.warn("Google Vision no extrajo texto");
+                log.warn("Tesseract no extrajo texto");
                 throw new IOException("No se detectó factura válida");
             }
             log.info("Texto extraído: {} caracteres", rawOCRText.length());
 
-            // 3. Limpiar y estructurar con Groq
-            log.info("Paso 3/4: Enviando a Groq para limpieza y estructuración");
+            // 2. Limpiar y estructurar con Groq
+            log.info("Paso 2/3: Enviando a Groq para limpieza y estructuración");
             String cleanedJSON = ocrService.cleanAndStructureWithGroq(rawOCRText);
             log.info("JSON limpio recibido de Groq");
+            log.info("Respuesta Groq (JSON): {}", cleanedJSON);
 
-            // 4. Validar datos extraídos
-            log.info("Paso 4/4: Validando datos extraídos");
+            // 3. Validar datos extraídos
+            log.info("Paso 3/3: Validando datos extraídos");
             ocrService.validateExtractedData(cleanedJSON);
 
-            // 5. Parsear y mapear al DTO
-            FacturaOCRResponse response = parseOCRResponse(cleanedJSON, urlImagen, proyectoId, usuarioId);
+            // 4. Parsear y mapear al DTO
+            FacturaOCRResponse response = parseOCRResponse(cleanedJSON, null, proyectoId, usuarioId);
             log.info("Procesamiento OCR completado exitosamente");
             return response;
 

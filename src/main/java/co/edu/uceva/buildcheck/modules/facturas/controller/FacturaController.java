@@ -63,6 +63,45 @@ public class FacturaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping(value = "/facturas/with-image", consumes = "multipart/form-data")
+    public ResponseEntity<Map<String, Object>> saveWithImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestPart("factura") String facturaJson) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (file.isEmpty()) {
+                response.put(MENSAJE, "El archivo no puede estar vacío");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            String contentType = file.getContentType();
+            if (!isValidImageType(contentType)) {
+                response.put(MENSAJE, "Formato de archivo inválido. Solo se permiten JPG y PNG");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            if (file.getSize() > MAX_FILE_SIZE) {
+                response.put(MENSAJE, "El archivo no puede exceder 5MB");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            FacturaRequest factura = new com.google.gson.Gson()
+                    .fromJson(facturaJson, FacturaRequest.class);
+            Factura nuevoFactura = facturaService.saveWithImage(
+                    factura,
+                    file.getBytes(),
+                    file.getOriginalFilename());
+
+            response.put(MENSAJE, "La factura ha sido creado con éxito!");
+            response.put(FACTURA, nuevoFactura);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            response.put(MENSAJE, "Error al guardar la factura con imagen");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     /**
      * Obtener una factura por su ID
      */
@@ -123,7 +162,7 @@ public class FacturaController {
     }
 
     /**
-     * Endpoint OCR: Procesa imagen de factura con Vision + Groq
+     * Endpoint OCR: Procesa imagen de factura con Tesseract + Groq
      * POST /api/facturas-service/ocr
      * 
      * Parameters:
@@ -137,7 +176,7 @@ public class FacturaController {
             @RequestParam("proyectoId") Long proyectoId,
             @RequestParam("usuarioId") Long usuarioId) {
 
-        log.info("Endpoint OCR llamado - archivo: {}, proyecto: {}, usuario: {}", 
+        log.info("Endpoint OCR llamado - archivo: {}, proyecto: {}, usuario: {}",
                 file.getOriginalFilename(), proyectoId, usuarioId);
 
         Map<String, Object> response = new HashMap<>();
@@ -171,8 +210,7 @@ public class FacturaController {
                     file.getBytes(),
                     file.getOriginalFilename(),
                     proyectoId,
-                    usuarioId
-            );
+                    usuarioId);
 
             log.info("OCR completado exitosamente");
             response.put(MENSAJE, "Factura procesada exitosamente");
@@ -195,10 +233,8 @@ public class FacturaController {
     }
 
     private boolean isValidImageType(String contentType) {
-        return contentType != null && (
-                contentType.equals("image/jpeg") ||
+        return contentType != null && (contentType.equals("image/jpeg") ||
                 contentType.equals("image/jpg") ||
-                contentType.equals("image/png")
-        );
+                contentType.equals("image/png"));
     }
 }

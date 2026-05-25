@@ -93,6 +93,8 @@ public class SecurityConfig {
 
                         // OCR endpoint is public
                         .requestMatchers(HttpMethod.POST, "/api/facturas-service/ocr").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/facturas-service/facturas/with-image")
+                        .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA")
                         .requestMatchers(HttpMethod.POST, "/api/facturas-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA")
                         .requestMatchers(HttpMethod.PUT, "/api/facturas-service/**")

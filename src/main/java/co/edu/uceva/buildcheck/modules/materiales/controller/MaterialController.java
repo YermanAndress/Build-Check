@@ -6,11 +6,14 @@ import co.edu.uceva.buildcheck.exception.RecursoNoEncontradoException;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
+import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
 import co.edu.uceva.buildcheck.security.annotations.RequireProyectoAccess;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
 import java.util.HashMap;
@@ -34,6 +37,11 @@ public class MaterialController {
         this.proyectoRepository = proyectoRepository;
     }
 
+
+    @Autowired
+    UsuarioRepository usuarioRepository;
+
+    @Autowired
     /**
      * Listar todos los materiales
      */
@@ -77,10 +85,14 @@ public class MaterialController {
     @RequireProyectoAccess(projectIdParam = "proyectoId", allowedRoles = { "ROLE_OWNER", "ROLE_ADMIN",
             "ROLE_ALMACENISTA" })
     public ResponseEntity<Map<String, Object>> saveByProyecto(@PathVariable Long proyectoId,
-            @Valid @RequestBody Material material) {
+            @Valid @RequestBody Material material,  Authentication authentication) {
         Proyecto proyecto = proyectoRepository.findById(proyectoId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el proyecto con ID: " + proyectoId));
+        String correo = authentication.getName();
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con correo: " + correo));
         material.setProyecto(proyecto);
+        material.setUsuario(usuario);
         Material nuevoMaterial = materialService.save(material);
         Map<String, Object> response = new HashMap<>();
         response.put(MENSAJE, "El material ha sido creado con éxito!");
@@ -197,4 +209,21 @@ public class MaterialController {
         List<MaterialStockBajoDTO> alertas = materialService.obtenerAlertasStockBajoByProyecto(proyectoId);
         return ResponseEntity.ok(alertas);
     }
+
+    @GetMapping("/materiales/buscar")
+    public ResponseEntity<?> buscarPorNombre(
+            @RequestParam String nombre,
+            @RequestParam Long proyectoId) {
+        List<Material> materiales = materialService
+                .buscarPorNombre(nombre, proyectoId);
+        if (materiales.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "No se encontro el material '" + nombre + "' en el proyecto"));
+        }
+        return ResponseEntity.ok(Map.of(
+            "materialId", materiales.get(0).getId(),
+            "nombre", materiales.get(0).getNombre(),
+            "stock", materiales.get(0).getStockActual()
+        ));
+        }
 }

@@ -3,6 +3,10 @@ package co.edu.uceva.buildcheck.modules.usuarios.controller;
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
 import co.edu.uceva.buildcheck.security.CifradoSimetrico;
 import co.edu.uceva.buildcheck.security.Jwt;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.model.UsuarioProyecto;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.repository.IUsuarioProyectoRepository;
 import co.edu.uceva.buildcheck.modules.usuario_proyecto.service.IUsuarioProyectoService;
 import io.jsonwebtoken.Claims;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
@@ -11,6 +15,9 @@ import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.login.RsaKeyService;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre;
+import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +54,15 @@ public class UsuarioController {
 
     @Autowired
     private IUsuarioProyectoService usuarioProyectoService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private IProyectoRepository proyectoRepository;
+
+    @Autowired
+    private IUsuarioProyectoRepository usuarioProyectoRepository;
 
     private static final String MENSAJE = "mensaje";
     private static final String USUARIO = "usuario";
@@ -313,5 +330,58 @@ public class UsuarioController {
             "mensaje", "Telegram vinculado exitosamente",
             "nombre", nombre
         ));
+    }
+
+        @GetMapping("/usuarios/telegram/{chatId}")
+        public ResponseEntity<?> getByChatId(
+            @PathVariable String chatId){
+
+                List<Usuario> usuarios =
+            usuarioRepository.findByTelegramChatId(chatId);
+
+    if (usuarios.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                    "error",
+                    "Usuario no encontrado. Usa /login para vincular tu cuenta"
+                ));
+    }
+
+    List<Map<String, Object>> resultado =
+            new ArrayList<>();
+
+    for (Usuario usuario : usuarios) {
+
+        List<UsuarioProyecto> proyectos =
+                usuarioProyectoRepository
+                        .findByUsuarioId(usuario.getId());
+
+        if (proyectos != null && !proyectos.isEmpty()) {
+
+            UsuarioProyecto up = proyectos.get(0);
+
+            Long proyectoId =
+                    up.getProyecto().getId();
+
+            String accessToken =
+                    jwt.generarToken(
+                            usuario.getCorreo(),
+                            proyectoId,
+                            up.getRolProyecto());
+
+            resultado.add(Map.of(
+                    "usuarioId", usuario.getId(),
+                    "correo", usuario.getCorreo(),
+                    "proyectoId", proyectoId,
+                    "nombreProyecto", up.getProyecto().getNombre(),
+                    "rolProyecto",
+                    up.getRolProyecto().name(),
+                    "accessToken",
+                    accessToken
+            ));
+        }
+    }
+
+    return ResponseEntity.ok(resultado);
     }
 }

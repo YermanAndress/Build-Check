@@ -91,7 +91,25 @@ public class UsuarioProyectoServiceImpl implements IUsuarioProyectoService {
 
     @Override
     public Optional<UsuarioProyecto> obtenerRolUsuarioEnProyecto(Long usuarioId, Long proyectoId) {
-        return usuarioProyectoRepository.findByUsuario_IdAndProyecto_Id(usuarioId, proyectoId);
+         Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+        Proyecto proyecto = proyectoRepository.findById(proyectoId).orElse(null);
+
+        if (usuario == null || proyecto == null) return Optional.empty();
+
+        Optional<UsuarioProyecto> up = usuarioProyectoRepository
+                .findByUsuarioAndProyecto(usuario, proyecto);
+
+        // ✅ Si no es miembro pero es el propietario, crear un UsuarioProyecto virtual con ROLE_OWNER
+        if (up.isEmpty() && proyecto.getUsuarioPropietario() != null &&
+                proyecto.getUsuarioPropietario().getId().equals(usuarioId)) {
+            UsuarioProyecto virtual = new UsuarioProyecto();
+            virtual.setUsuario(usuario);
+            virtual.setProyecto(proyecto);
+            virtual.setRolProyecto(RolNombre.ROLE_OWNER);
+            return Optional.of(virtual);
+        }
+
+        return up;
     }
 
     @Override
@@ -101,6 +119,10 @@ public class UsuarioProyectoServiceImpl implements IUsuarioProyectoService {
 
         if (usuario == null || proyecto == null) {
             return false;
+        }
+
+        if (proyecto.getUsuarioPropietario() != null && proyecto.getUsuarioPropietario().getId().equals(usuarioId)) {
+            return true;
         }
 
         return usuarioProyectoRepository.existsByUsuarioAndProyecto(usuario, proyecto);

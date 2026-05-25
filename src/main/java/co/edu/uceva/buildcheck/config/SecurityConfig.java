@@ -56,6 +56,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/recuperar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/vincular").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reportes/semanal").permitAll()
+                        .requestMatchers("/api/clasificador/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios/telegram/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/materiales-service/materiales/buscar").permitAll()
 
                         // Solo ADMIN para todo lo demás de usuarios-service
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios-service/**").hasAnyRole("OWNER", "ADMIN")
@@ -73,8 +76,8 @@ public class SecurityConfig {
                         .hasAnyRole("OWNER", "ADMIN")
 
                         // Movimientos
-                        .requestMatchers(HttpMethod.GET, "/api/movimientos-service/**").permitAll()
-                        // .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/movimientos-service/**")
+                        .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "DIRECTOR_OBRA", "RESIDENTE")
 
                         .requestMatchers(HttpMethod.POST, "/api/movimientos-service/**")
                         .hasAnyRole("OWNER", "ADMIN", "ALMACENISTA", "RESIDENTE")

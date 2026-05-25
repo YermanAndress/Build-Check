@@ -67,4 +67,11 @@ public interface IUsuarioProyectoRepository extends JpaRepository<UsuarioProyect
             "JOIN FETCH up.usuario u " +
             "WHERE up.proyecto.id = :proyectoId")
     List<UsuarioProyecto> findByProyectoIdWithUsuarioEager(@Param("proyectoId") Long proyectoId);
+    
+    List<UsuarioProyecto> findByUsuarioId(Long usuarioId);
+
+    List<UsuarioProyecto> findByProyectoAndRolProyectoIn(
+        Proyecto proyecto,
+        List<RolNombre> roles
+    );
 }

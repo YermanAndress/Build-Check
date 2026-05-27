@@ -22,10 +22,10 @@ import java.util.List;
 public class FacturaOCRService {
 
     private final OCRService ocrService;
-    private final SupabaseStorageService supabaseService;
     private static final Gson gson = new Gson();
 
-    public FacturaOCRResponse procesarImagenOCR(byte[] imageData, String fileName, Long proyectoId, Long usuarioId) throws IOException {
+    public FacturaOCRResponse procesarImagenOCR(byte[] imageData, String fileName, Long proyectoId, Long usuarioId)
+            throws IOException {
         log.info("Iniciando procesamiento OCR para imagen: {}", fileName);
 
         try {

@@ -22,7 +22,8 @@ public class TelegramService {
 
     private final IUsuarioProyectoRepository usuarioProyectoRepository;
 
-    // RestTemplate NO puede ser final con @RequiredArgsConstructor si se inicializa inline,
+    // RestTemplate NO puede ser final con @RequiredArgsConstructor si se inicializa
+    // inline,
     // hay que declararlo así para evitar conflicto con Lombok
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -33,15 +34,13 @@ public class TelegramService {
             Double stockActual,
             Double stockReferencia,
             String unidadMedida,
-            String mensajeStock
-    ) {
+            String mensajeStock) {
 
-System.out.println("===== ALERTA STOCK =====");
-    System.out.println("ProyectoId: " + proyectoId);
+        System.out.println("===== ALERTA STOCK =====");
+        System.out.println("ProyectoId: " + proyectoId);
         // Usamos findByProyectoIdWithUsuarioEager que ya existe en el repositorio real
         // y hace JOIN FETCH para cargar el Usuario (necesario para leer telegramChatId)
-        List<UsuarioProyecto> miembros =
-                usuarioProyectoRepository.findByProyectoIdWithUsuarioEager(proyectoId);
+        List<UsuarioProyecto> miembros = usuarioProyectoRepository.findByProyectoIdWithUsuarioEager(proyectoId);
 
         if (miembros.isEmpty()) {
             System.out.println("No hay miembros en el proyecto");
@@ -52,20 +51,19 @@ System.out.println("===== ALERTA STOCK =====");
 
         String diaSemana = LocalDate.now()
                 .getDayOfWeek()
-                .getDisplayName(TextStyle.FULL, new Locale("es", "CO"));
+                .getDisplayName(TextStyle.FULL, Locale.of("es", "CO"));
 
-        String mensaje =
-            "⚠️ ALERTA DE STOCK BAJO\n" +
-            "📅 " + diaSemana + "\n" +
-            " ━━━━━━━━━━━━━━━━━━━━\n\n" +
-            "🏗️ Proyecto: " + nombreProyecto + "\n" +
-            "🔴 Material: " + materialNombre + "\n\n" +
-            "📦 Stock actual: " + stockActual + " " + unidadMedida + "\n" +
-            "🎯 Umbral mínimo: " + stockReferencia + " " + unidadMedida + "\n" +
-            "📉 Nivel: " + String.format("%.1f", porcentaje) + "% del umbral\n" +
-            "💬 " + mensajeStock + "\n\n" +
-            "━━━━━━━━━━━━━━━━━━━━\n" +
-            "🏗️ BuildCheck — Alertas automáticas";
+        String mensaje = "⚠️ ALERTA DE STOCK BAJO\n" +
+                "📅 " + diaSemana + "\n" +
+                " ━━━━━━━━━━━━━━━━━━━━\n\n" +
+                "🏗️ Proyecto: " + nombreProyecto + "\n" +
+                "🔴 Material: " + materialNombre + "\n\n" +
+                "📦 Stock actual: " + stockActual + " " + unidadMedida + "\n" +
+                "🎯 Umbral mínimo: " + stockReferencia + " " + unidadMedida + "\n" +
+                "📉 Nivel: " + String.format("%.1f", porcentaje) + "% del umbral\n" +
+                "💬 " + mensajeStock + "\n\n" +
+                "━━━━━━━━━━━━━━━━━━━━\n" +
+                "🏗️ BuildCheck — Alertas automáticas";
 
         for (UsuarioProyecto up : miembros) {
             String chatId = up.getUsuario().getTelegramChatId();
@@ -94,6 +92,6 @@ System.out.println("===== ALERTA STOCK =====");
     record TelegramMessageRequest(
             String chat_id,
             String text,
-            String parse_mode
-    ) {}
+            String parse_mode) {
+    }
 }

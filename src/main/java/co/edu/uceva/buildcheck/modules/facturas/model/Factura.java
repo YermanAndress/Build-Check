@@ -37,6 +37,9 @@ public class Factura {
     @DecimalMin(value = "0", message = "El total debe ser positivo")
     private Double valorTotal;
 
+    @Column(name = "url_imagen")
+    private String urlImagen;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 

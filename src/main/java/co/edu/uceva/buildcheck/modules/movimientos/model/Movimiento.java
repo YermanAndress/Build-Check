@@ -1,9 +1,12 @@
 package co.edu.uceva.buildcheck.modules.movimientos.model;
 
+import co.edu.uceva.buildcheck.modules.facturas.model.Factura;
 import co.edu.uceva.buildcheck.modules.materiales.model.Material;
 import co.edu.uceva.buildcheck.modules.movimientos.model.TipoMovimiento.TipoMovimientoNombre;
 import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -53,4 +56,19 @@ public class Movimiento {
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "factura_id")
+    @JsonIgnore
+    private Factura factura;
+
+    @JsonProperty("facturaId")
+    public Long getFacturaId() {
+        return factura != null ? factura.getId() : null;
+    }
+
+    @JsonProperty("facturaNumero")
+    public String getFacturaNumero() {
+        return factura != null ? factura.getNumeroFactura() : null;
+    }
 }

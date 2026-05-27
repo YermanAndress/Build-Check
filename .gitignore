@@ -1,20 +1,54 @@
-# Java/Maven
+# ==========================================
+# Java / Maven
+# ==========================================
 target/
 *.class
 *.jar
 *.war
 *.ear
+release.properties
+pom.xml.releaseBackup
+buildNumber.properties
 
-# Spring Boot
+# Spring Boot & Config Local
 .mvn/
-mvnw
-mvnw.cmd
 application-local.properties
+*.log
+logs/
 
 # Docker local
 .docker/
 .env
 
-# Llaves RSA
+# ==========================================
+# Secretos y Llaves 
+# ==========================================
 rsa_private.key
 rsa_public.key
+gcp-vision.json
+tessdata/
+
+# ==========================================
+# IDEs & Editores
+# ==========================================
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.metadata/
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# ==========================================
+# Sistema Operativo
+# ==========================================
+.DS_Store
+Thumbs.db

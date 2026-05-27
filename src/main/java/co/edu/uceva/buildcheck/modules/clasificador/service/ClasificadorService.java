@@ -33,9 +33,8 @@ public class ClasificadorService {
         try (InputStream is = getClass().getResourceAsStream(MODEL_PATH)) {
             if (is == null) {
                 throw new RuntimeException(
-                    "Modelo ONNX no encontrado en " + MODEL_PATH +
-                    ". Copia el .onnx a src/main/resources/models/"
-                );
+                        "Modelo ONNX no encontrado en " + MODEL_PATH +
+                                ". Copia el .onnx a src/main/resources/models/");
             }
             byte[] modelBytes = is.readAllBytes();
             session = env.createSession(modelBytes, new OrtSession.SessionOptions());
@@ -46,8 +45,10 @@ public class ClasificadorService {
     @PreDestroy
     public void cleanup() {
         try {
-            if (session != null) session.close();
-            if (env != null) env.close();
+            if (session != null)
+                session.close();
+            if (env != null)
+                env.close();
         } catch (OrtException e) {
             // ignorar al cerrar
         }
@@ -72,18 +73,17 @@ public class ClasificadorService {
         IntPointer histSize = new IntPointer(256, 256);
         FloatPointer ranges = new FloatPointer(0f, 256f, 0f, 256f);
         opencv_imgproc.calcHist(
-            srcVec,
-            channels,
-            new Mat(),
-            hist,
-            histSize,
-            ranges
-        );
+                srcVec,
+                channels,
+                new Mat(),
+                hist,
+                histSize,
+                ranges);
 
         float[] features = new float[HIST_SIZE];
         FloatIndexer idx = hist.createIndexer();
-        for(int i = 0; i < 256; i++){
-            for(int j = 0; j < 256; j++){
+        for (int i = 0; i < 256; i++) {
+            for (int j = 0; j < 256; j++) {
                 features[i * 256 + j] = idx.get(i, j);
             }
         }
@@ -101,75 +101,74 @@ public class ClasificadorService {
      * Clasifica una imagen y retorna predicción y confianza.
      */
     public Map<String, Object> clasificar(byte[] imageBytes) throws OrtException {
-    float[] features = extraerHistograma(imageBytes);
+        float[] features = extraerHistograma(imageBytes);
 
-    long[] shape = {1, HIST_SIZE};
-    OnnxTensor inputTensor = OnnxTensor.createTensor(
-        env, FloatBuffer.wrap(features), shape
-    );
+        long[] shape = { 1, HIST_SIZE };
+        OnnxTensor inputTensor = OnnxTensor.createTensor(
+                env, FloatBuffer.wrap(features), shape);
 
-    String inputName = session.getInputNames().iterator().next();
+        String inputName = session.getInputNames().iterator().next();
 
-    try (OrtSession.Result result = session.run(
-            Collections.singletonMap(inputName, inputTensor))) {
+        try (OrtSession.Result result = session.run(
+                Collections.singletonMap(inputName, inputTensor))) {
 
-        // Primera salida: label predicho
-        Object rawLabel = result.get(0).getValue();
-        String prediction;
-        if (rawLabel instanceof String[]) {
-            prediction = ((String[]) rawLabel)[0];
-        } else if (rawLabel instanceof List) {
-            prediction = ((List<?>) rawLabel).get(0).toString();
-        } else {
-            prediction = rawLabel.toString();
-        }
+            // Primera salida: label predicho
+            Object rawLabel = result.get(0).getValue();
+            String prediction;
+            if (rawLabel instanceof String[]) {
+                prediction = ((String[]) rawLabel)[0];
+            } else if (rawLabel instanceof List) {
+                prediction = ((List<?>) rawLabel).get(0).toString();
+            } else {
+                prediction = rawLabel.toString();
+            }
 
-        // Segunda salida: probabilidades como OnnxMap
-        float confidence = 0f;
-        OnnxValue probValue = result.get(1);
+            // Segunda salida: probabilidades como OnnxMap
+            float confidence = 0f;
+            OnnxValue probValue = result.get(1);
 
-        if (probValue instanceof OnnxSequence) {
-            // Es una secuencia de mapas {clase -> probabilidad}
-            OnnxSequence seq = (OnnxSequence) probValue;
-            List<?> seqList = (List<?>) seq.getValue();
+            if (probValue instanceof OnnxSequence) {
+                // It's a sequence of maps {class -> probability}
+                OnnxSequence seq = (OnnxSequence) probValue;
+                List<?> seqList = (List<?>) seq.getValue();
 
-            if (!seqList.isEmpty()) {
-                Object first = seqList.get(0);
-                if (first instanceof OnnxMap) {
-                    // ✅ Leer OnnxMap correctamente
-                    OnnxMap onnxMap = (OnnxMap) first;
+                if (!seqList.isEmpty()) {
+                    Object first = seqList.get(0);
+                    if (first instanceof OnnxMap) {
+                        try (OnnxMap onnxMap = (OnnxMap) first) {
+                            Map<?, ?> probMap = (Map<?, ?>) onnxMap.getValue();
+                            confidence = probMap.values().stream()
+                                    .map(v -> ((Number) v).floatValue())
+                                    .max(Float::compareTo)
+                                    .orElse(0f);
+                        }
+                    } else if (first instanceof Map) {
+                        Map<?, ?> probMap = (Map<?, ?>) first;
+                        confidence = probMap.values().stream()
+                                .map(v -> ((Number) v).floatValue())
+                                .max(Float::compareTo)
+                                .orElse(0f);
+                    }
+                }
+            } else if (probValue instanceof OnnxMap) {
+                try (OnnxMap onnxMap = (OnnxMap) probValue) {
                     Map<?, ?> probMap = (Map<?, ?>) onnxMap.getValue();
                     confidence = probMap.values().stream()
-                        .map(v -> ((Number) v).floatValue())
-                        .max(Float::compareTo)
-                        .orElse(0f);
-                } else if (first instanceof Map) {
-                    Map<?, ?> probMap = (Map<?, ?>) first;
-                    confidence = probMap.values().stream()
-                        .map(v -> ((Number) v).floatValue())
-                        .max(Float::compareTo)
-                        .orElse(0f);
+                            .map(v -> ((Number) v).floatValue())
+                            .max(Float::compareTo)
+                            .orElse(0f);
                 }
             }
-        } else if (probValue instanceof OnnxMap) {
-            // Directamente un mapa
-            OnnxMap onnxMap = (OnnxMap) probValue;
-            Map<?, ?> probMap = (Map<?, ?>) onnxMap.getValue();
-            confidence = probMap.values().stream()
-                .map(v -> ((Number) v).floatValue())
-                .max(Float::compareTo)
-                .orElse(0f);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("prediction", prediction);
+            response.put("confidence", Math.round(confidence * 10000.0) / 10000.0);
+            return response;
+
+        } finally {
+            inputTensor.close();
         }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("prediction", prediction);
-        response.put("confidence", Math.round(confidence * 10000.0) / 10000.0);
-        return response;
-
-    } finally {
-        inputTensor.close();
     }
-}
 
     /**
      * Clasifica y valida si coincide con el material esperado.

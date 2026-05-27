@@ -231,5 +231,5 @@ public class OCRService {
         }
 
         return output;
-    }<<<<<<<HEAD
-}=======}>>>>>>>ddff58b52976d9a456a04e5b1bbc480b5dc9a980
+    }
+}

@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/api/usuarios-service/refresh",
                                 "/api/usuarios-service/public-key")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios/telegram/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/*/proyecto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios").permitAll()
@@ -58,7 +59,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/vincular").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reportes/semanal").permitAll()
                         .requestMatchers("/api/clasificador/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios/telegram/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/materiales-service/materiales/buscar").permitAll()
 
                         // Solo ADMIN para todo lo demás de usuarios-service

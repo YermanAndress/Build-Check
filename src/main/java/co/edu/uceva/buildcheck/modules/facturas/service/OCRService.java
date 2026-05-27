@@ -143,7 +143,6 @@ public class OCRService {
                     }
                   ]
                 }
-
                 IMPORTANTE:
                 - Devuelve SOLO el JSON, sin markdown ni explicaciones
                 - Si no encuentras un campo, déjalo como null
@@ -232,5 +231,5 @@ public class OCRService {
         }
 
         return output;
-    }
-}
+    }<<<<<<<HEAD
+}=======}>>>>>>>ddff58b52976d9a456a04e5b1bbc480b5dc9a980

@@ -60,11 +60,16 @@ public class ReporteController {
         List<Map<String, Object>> reportes = new ArrayList<>();
 
         for (Proyecto proyecto : proyectos) {
-
+           List<RolNombre> rolesPermitidos =
+                List.of(
+                        RolNombre.ROLE_DIRECTOR_OBRA,
+                        RolNombre.ROLE_OWNER,
+                        RolNombre.ROLE_ADMIN
+                );
             // Buscar directores de obra con telegramChatId vinculado
             List<UsuarioProyecto> miembros =
-                    usuarioProyectoRepository.findByProyectoAndRolProyecto(
-                            proyecto, RolNombre.ROLE_DIRECTOR_OBRA);
+                    usuarioProyectoRepository.findByProyectoAndRolProyectoIn(
+                            proyecto, rolesPermitidos);
 
             List<String> chatIds = miembros.stream()
                     .map(m -> m.getUsuario().getTelegramChatId())

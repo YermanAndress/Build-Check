@@ -3,6 +3,10 @@ package co.edu.uceva.buildcheck.modules.usuarios.controller;
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
 import co.edu.uceva.buildcheck.security.CifradoSimetrico;
 import co.edu.uceva.buildcheck.security.Jwt;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.model.UsuarioProyecto;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.repository.IUsuarioProyectoRepository;
 import co.edu.uceva.buildcheck.modules.usuario_proyecto.service.IUsuarioProyectoService;
 import io.jsonwebtoken.Claims;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
@@ -11,6 +15,9 @@ import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.login.RsaKeyService;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre;
+import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +54,15 @@ public class UsuarioController {
 
     @Autowired
     private IUsuarioProyectoService usuarioProyectoService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private IProyectoRepository proyectoRepository;
+
+    @Autowired
+    private IUsuarioProyectoRepository usuarioProyectoRepository;
 
     private static final String MENSAJE = "mensaje";
     private static final String USUARIO = "usuario";
@@ -314,4 +331,83 @@ public class UsuarioController {
             "nombre", nombre
         ));
     }
+
+    @GetMapping("/usuarios/telegram/{chatId}")
+public ResponseEntity<?> getByChatId(@PathVariable String chatId) {
+    List<Usuario> usuarios = usuarioRepository.findByTelegramChatId(chatId);
+    if (usuarios.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Usuario no encontrado. Usa /login para vincular tu cuenta"));
+    }
+
+    List<Map<String, Object>> resultado = new ArrayList<>();
+
+    for (Usuario usuario : usuarios) {
+        List<UsuarioProyecto> proyectos = usuarioProyectoRepository.findByUsuarioId(usuario.getId());
+        List<Proyecto> proyectosOwner = proyectoRepository.findByUsuarioPropietario_Id(usuario.getId());
+        if (proyectos != null && !proyectos.isEmpty()) {
+            for (UsuarioProyecto up : proyectos) {
+                Long proyectoId = up.getProyecto().getId();
+                String accessToken = jwt.generarToken(usuario.getCorreo(), proyectoId, up.getRolProyecto());
+                Map<String, Object> item = new HashMap<>();
+                item.put("usuarioId", usuario.getId());
+                item.put("correo", usuario.getCorreo());
+                item.put("proyectoId", proyectoId);
+                item.put("nombreProyecto", up.getProyecto().getNombre());
+                item.put("rolProyecto", up.getRolProyecto().name());
+                item.put("accessToken", accessToken);
+                item.put("esActivo", proyectoId.equals(usuario.getTelegramProyectoActivo()));
+                resultado.add(item);
+            }
+        }
+        if (proyectosOwner != null && !proyectosOwner.isEmpty()) {
+            for(Proyecto proyecto : proyectosOwner){
+                boolean yaExiste = resultado.stream().anyMatch(p -> p.get("proyectoId").equals(proyecto.getId()));
+                if (!yaExiste) {
+                    String accessToken = jwt.generarToken(
+                        usuario.getCorreo(),
+                        proyecto.getId(),
+                        RolNombre.ROLE_OWNER
+                    );
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("usuarioId", usuario.getId());
+                    item.put("correo", usuario.getCorreo());
+                    item.put("proyectoId", proyecto.getId());
+                    item.put("nombreProyecto", proyecto.getNombre());
+                    item.put("rolProyecto", "ROLE_OWNER");
+                    item.put("accessToken", accessToken);
+                    item.put("esActivo", proyecto.getId().equals(usuario.getTelegramProyectoActivo()));
+                    resultado.add(item);
+                }
+            }
+        }
+    }
+
+    if (resultado.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "El usuario no tiene proyectos asignados."));
+    }
+
+    // ✅ Proyecto activo primero
+    resultado.sort((a, b) -> Boolean.compare(
+        (Boolean) b.get("esActivo"),
+        (Boolean) a.get("esActivo")
+    ));
+
+    return ResponseEntity.ok(resultado);
+}
+
+    @PostMapping("usuarios/telegram/{chatId}/proyecto")
+    public ResponseEntity<?> setProyectoActivoBot(
+        @PathVariable String chatId,
+        @RequestBody Map<String, Long> body) {
+            List<Usuario> usuarios = usuarioRepository.findByTelegramChatId(chatId);
+            if (usuarios.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Usuario usuario = usuarios.get(0);
+            usuario.setTelegramProyectoActivo(body.get("proyectoId"));
+            usuarioRepository.save(usuario);
+            return ResponseEntity.ok(Map.of("ok", true));
+        }
 }

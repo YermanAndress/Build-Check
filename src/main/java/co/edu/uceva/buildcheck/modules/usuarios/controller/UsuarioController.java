@@ -3,6 +3,10 @@ package co.edu.uceva.buildcheck.modules.usuarios.controller;
 import co.edu.uceva.buildcheck.modules.usuarios.service.UsuarioService;
 import co.edu.uceva.buildcheck.security.CifradoSimetrico;
 import co.edu.uceva.buildcheck.security.Jwt;
+import co.edu.uceva.buildcheck.modules.proyectos.model.Proyecto;
+import co.edu.uceva.buildcheck.modules.proyectos.repository.IProyectoRepository;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.model.UsuarioProyecto;
+import co.edu.uceva.buildcheck.modules.usuario_proyecto.repository.IUsuarioProyectoRepository;
 import co.edu.uceva.buildcheck.modules.usuario_proyecto.service.IUsuarioProyectoService;
 import io.jsonwebtoken.Claims;
 import co.edu.uceva.buildcheck.modules.usuarios.login.GenerarPassword;
@@ -11,6 +15,8 @@ import co.edu.uceva.buildcheck.modules.usuarios.login.EmailService;
 import co.edu.uceva.buildcheck.modules.usuarios.login.LoginRequest;
 import co.edu.uceva.buildcheck.modules.usuarios.login.RsaKeyService;
 import co.edu.uceva.buildcheck.modules.usuarios.model.Usuario;
+import co.edu.uceva.buildcheck.modules.usuarios.model.Roles.RolNombre;
+import co.edu.uceva.buildcheck.modules.usuarios.repository.UsuarioRepository;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +55,15 @@ public class UsuarioController {
     @Autowired
     private IUsuarioProyectoService usuarioProyectoService;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private IProyectoRepository proyectoRepository;
+
+    @Autowired
+    private IUsuarioProyectoRepository usuarioProyectoRepository;
+
     private static final String MENSAJE = "mensaje";
     private static final String USUARIO = "usuario";
     private static final String USUARIOS = "usuarios";
@@ -65,6 +81,7 @@ public class UsuarioController {
         usuarios.forEach(u -> {
             try {
                 u.setNombre(cifradoSimetrico.descifrar(u.getNombre()));
+                u.setTelefono(cifradoSimetrico.descifrar(u.getTelefono()));
             } catch (Exception e) {
                 // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
@@ -89,11 +106,17 @@ public class UsuarioController {
         }
         // Cifrar nombre con algoritmo simetrico
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
+        if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+            usuario.setTelefono(cifradoSimetrico.cifrar(usuario.getTelefono()));            
+        }
 
         Usuario nuevoUsuario = usuarioService.save(usuario);
         // Devolver nombre descifrado al frontend
         try {
             nuevoUsuario.setNombre(cifradoSimetrico.descifrar(nuevoUsuario.getNombre()));
+            if (nuevoUsuario.getTelefono() != null && !nuevoUsuario.getTelefono().isBlank()) {
+                nuevoUsuario.setTelefono(cifradoSimetrico.descifrar(nuevoUsuario.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -110,6 +133,9 @@ public class UsuarioController {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el usuario con ID: " + id));
         try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+            if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+                usuario.setTelefono(cifradoSimetrico.descifrar(usuario.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -127,9 +153,15 @@ public class UsuarioController {
         usuario.setId(id); // Aseguramos que se actualice el ID correcto
         // Cifrar nombre antes de guardar
         usuario.setNombre(cifradoSimetrico.cifrar(usuario.getNombre()));
+        if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+            usuario.setTelefono(cifradoSimetrico.cifrar(usuario.getTelefono()));
+        }
         Usuario usuarioActualizado = usuarioService.update(usuario);
         try {
             usuarioActualizado.setNombre(cifradoSimetrico.descifrar(usuarioActualizado.getNombre()));
+            if (usuarioActualizado.getTelefono() != null && !usuarioActualizado.getTelefono().isBlank()) {
+                usuarioActualizado.setTelefono(cifradoSimetrico.descifrar(usuarioActualizado.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -169,6 +201,9 @@ public class UsuarioController {
             // Descifrar nombre antes de devolver
             try {
                 usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+                if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+                    usuario.setTelefono(cifradoSimetrico.descifrar(usuario.getTelefono()));
+                }
             } catch (Exception e) {
                 // Si ocurre un error al descifrar, dejamos el nombre sin cambios
             }
@@ -238,6 +273,9 @@ public class UsuarioController {
         }
         try {
             usuario.setNombre(cifradoSimetrico.descifrar(usuario.getNombre()));
+            if (usuario.getTelefono() != null && !usuario.getTelefono().isBlank()) {
+                usuario.setTelefono(cifradoSimetrico.descifrar(usuario.getTelefono()));
+            }
         } catch (Exception e) {
             // Si ocurre un error al descifrar, dejamos el nombre sin cambios
         }
@@ -254,7 +292,7 @@ public class UsuarioController {
         }
         String nuevaPassword = GenerarPassword.generarPassword();
         usuario.setPassword(passwordEncoder.encode(nuevaPassword));
-        usuarioService.update(usuario);
+        usuarioService.guardarPasswordDirecto(usuario);
         emailService.enviarCorreo(correo, "Recuperación de contraseña", "Tu nueva contraseña es: " + nuevaPassword);
         return ResponseEntity.ok(Map.of("mensaje", "Se ha enviado una nueva contraseña a tu correo"));
     }
@@ -264,4 +302,112 @@ public class UsuarioController {
     public ResponseEntity<Map<String, String>> getPublicKey() {
         return ResponseEntity.ok(Map.of("publicKey", rsaKeyService.getPublicKeyBase64()));
     }
+
+    @PostMapping("/usuarios/telegram/vincular")
+    public ResponseEntity<?> vincularTelegram(@RequestBody Map<String, String> body) {
+        String correo = body.get("correo");
+        String password = body.get("password");
+        String telegramChatId = body.get("telegramChatId");
+
+        if (correo == null || password == null || telegramChatId == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Correo, password y telegram chat id son requeridos"));
+        }
+        Usuario usuario = usuarioService.findByCorreo(correo).orElse(null);
+        if (usuario == null || !passwordEncoder.matches(password, usuario.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Credenciales inválidas"));
+        }
+        usuario.setTelegramChatId(telegramChatId);
+        usuarioService.guardarPasswordDirecto(usuario);
+        String nombre = usuario.getNombre();
+        try{
+            nombre = cifradoSimetrico.descifrar(nombre);
+        }catch (Exception e){
+            
+        }
+        return ResponseEntity.ok(Map.of(
+            "mensaje", "Telegram vinculado exitosamente",
+            "nombre", nombre
+        ));
+    }
+
+    @GetMapping("/usuarios/telegram/{chatId}")
+public ResponseEntity<?> getByChatId(@PathVariable String chatId) {
+    List<Usuario> usuarios = usuarioRepository.findByTelegramChatId(chatId);
+    if (usuarios.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Usuario no encontrado. Usa /login para vincular tu cuenta"));
+    }
+
+    List<Map<String, Object>> resultado = new ArrayList<>();
+
+    for (Usuario usuario : usuarios) {
+        List<UsuarioProyecto> proyectos = usuarioProyectoRepository.findByUsuarioId(usuario.getId());
+        List<Proyecto> proyectosOwner = proyectoRepository.findByUsuarioPropietario_Id(usuario.getId());
+        if (proyectos != null && !proyectos.isEmpty()) {
+            for (UsuarioProyecto up : proyectos) {
+                Long proyectoId = up.getProyecto().getId();
+                String accessToken = jwt.generarToken(usuario.getCorreo(), proyectoId, up.getRolProyecto());
+                Map<String, Object> item = new HashMap<>();
+                item.put("usuarioId", usuario.getId());
+                item.put("correo", usuario.getCorreo());
+                item.put("proyectoId", proyectoId);
+                item.put("nombreProyecto", up.getProyecto().getNombre());
+                item.put("rolProyecto", up.getRolProyecto().name());
+                item.put("accessToken", accessToken);
+                item.put("esActivo", proyectoId.equals(usuario.getTelegramProyectoActivo()));
+                resultado.add(item);
+            }
+        }
+        if (proyectosOwner != null && !proyectosOwner.isEmpty()) {
+            for(Proyecto proyecto : proyectosOwner){
+                boolean yaExiste = resultado.stream().anyMatch(p -> p.get("proyectoId").equals(proyecto.getId()));
+                if (!yaExiste) {
+                    String accessToken = jwt.generarToken(
+                        usuario.getCorreo(),
+                        proyecto.getId(),
+                        RolNombre.ROLE_OWNER
+                    );
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("usuarioId", usuario.getId());
+                    item.put("correo", usuario.getCorreo());
+                    item.put("proyectoId", proyecto.getId());
+                    item.put("nombreProyecto", proyecto.getNombre());
+                    item.put("rolProyecto", "ROLE_OWNER");
+                    item.put("accessToken", accessToken);
+                    item.put("esActivo", proyecto.getId().equals(usuario.getTelegramProyectoActivo()));
+                    resultado.add(item);
+                }
+            }
+        }
+    }
+
+    if (resultado.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "El usuario no tiene proyectos asignados."));
+    }
+
+    // ✅ Proyecto activo primero
+    resultado.sort((a, b) -> Boolean.compare(
+        (Boolean) b.get("esActivo"),
+        (Boolean) a.get("esActivo")
+    ));
+
+    return ResponseEntity.ok(resultado);
+}
+
+    @PostMapping("usuarios/telegram/{chatId}/proyecto")
+    public ResponseEntity<?> setProyectoActivoBot(
+        @PathVariable String chatId,
+        @RequestBody Map<String, Long> body) {
+            List<Usuario> usuarios = usuarioRepository.findByTelegramChatId(chatId);
+            if (usuarios.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Usuario usuario = usuarios.get(0);
+            usuario.setTelegramProyectoActivo(body.get("proyectoId"));
+            usuarioRepository.save(usuario);
+            return ResponseEntity.ok(Map.of("ok", true));
+        }
 }

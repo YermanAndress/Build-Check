@@ -14,6 +14,9 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     boolean existsByProyecto(Proyecto proyecto);
     boolean existsByMaterial(Material material);
 
-    @Query("SELECT m FROM Movimiento m WHERE m.proyecto.id = :proyectoId")
+    @Query("SELECT m FROM Movimiento m WHERE m.proyecto.id = :proyectoId ORDER BY m.fechaCreacion DESC")
     List<Movimiento> findByProyectoId(@Param("proyectoId") Long proyectoId);
+
+    @Query("SELECT m FROM Movimiento m ORDER BY m.fechaCreacion DESC")
+    List<Movimiento> findAllOrdenado();
 }

@@ -62,4 +62,8 @@ public class Material {
     @JsonIgnore
     private List<FacturaMaterial> facturas = new ArrayList<>();
 
+    @PrePersist
+    protected void onCreate(){
+        this.fechaCreacion = LocalDateTime.now();
+    }
 }

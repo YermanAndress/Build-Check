@@ -150,4 +150,8 @@ public class MaterialService {
     public List<MaterialDTO> findByProyectoIdDTO(Long proyectoId) {
         return materialRepository.findByProyectoId(proyectoId).stream().map(this::toDTO).toList();
     }
+
+    public List<Material> buscarPorNombre(String nombre, Long proyectoId){
+        return materialRepository.findByProyectoIdAndNombreContaining(proyectoId, nombre);
+    }
 }

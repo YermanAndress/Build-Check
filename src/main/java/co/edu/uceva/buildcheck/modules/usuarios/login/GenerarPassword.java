@@ -1,13 +1,13 @@
 package co.edu.uceva.buildcheck.modules.usuarios.login;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 public class GenerarPassword {
     public static String generarPassword() {
         int longitud = 12;
         String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
         StringBuilder password = new StringBuilder();
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         for (int i = 0; i < longitud; i++) {
             password.append(caracteres.charAt(random.nextInt(caracteres.length())));
         }

@@ -12,6 +12,6 @@ import org.springframework.stereotype.Repository;
 public interface FacturaRepository extends JpaRepository<Factura, Long> {
     Optional<Factura> findByNumeroFactura(String numeroFactura);
 
-    @Query("SELECT f FROM Factura f WHERE f.proyecto.id = :proyectoId")
+    @Query("SELECT f FROM Factura f WHERE f.proyecto.id = :proyectoId ORDER BY f.fechaCreacion DESC")
     List<Factura> findByProyectoId(@Param("proyectoId") Long proyectoId);
 }

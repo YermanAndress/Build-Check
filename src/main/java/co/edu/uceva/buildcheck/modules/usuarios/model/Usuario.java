@@ -31,4 +31,28 @@ public class Usuario {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @Column(nullable = true, length = 255)
+    private String telefono;
+
+    @Column(name = "telegram_chat_id")
+    private String telegramChatId;
+
+    @Column(name = "telegram_proyecto_activo")
+    private Long telegramProyectoActivo;
+
+    public String getTelegramChatId() {
+        return telegramChatId;
+    }
+    public void setTelegramChatId(String telegramChatId) {
+        this.telegramChatId = telegramChatId;
+    }
+
+    public Long getTelegramProyectoActivo(){
+        return telegramProyectoActivo;
+    }
+
+    public void setTelegramProyectoActivo(Long id){
+        this.telegramProyectoActivo = id;
+    }
 }

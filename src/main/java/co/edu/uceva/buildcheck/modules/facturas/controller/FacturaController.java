@@ -72,7 +72,8 @@ public class FacturaController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            log.info("Guardando factura con imagen - archivo: {}, size: {}", file.getOriginalFilename(), file.getSize());
+            log.info("Guardando factura con imagen - archivo: {}, size: {}", file.getOriginalFilename(),
+                    file.getSize());
             log.info("Payload factura JSON: {}", facturaJson);
 
             if (file.isEmpty()) {
@@ -259,7 +260,7 @@ public class FacturaController {
         } catch (IllegalArgumentException e) {
             log.warn("Validación fallida: {}", e.getMessage());
             response.put(MENSAJE, e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
         } catch (IOException e) {
             log.error("Error procesando OCR", e);
             response.put(MENSAJE, "Error al procesar la imagen");

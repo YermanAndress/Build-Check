@@ -10,6 +10,7 @@ import co.edu.uceva.buildcheck.modules.facturas.service.FacturaOCRService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class FacturaController {
 
     private final FacturaService facturaService;
     private final FacturaOCRService facturaOCRService;
+    private final ObjectMapper objectMapper;
 
     private static final String MENSAJE = "mensaje";
     private static final String FACTURA = "factura";
@@ -70,6 +72,9 @@ public class FacturaController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            log.info("Guardando factura con imagen - archivo: {}, size: {}", file.getOriginalFilename(), file.getSize());
+            log.info("Payload factura JSON: {}", facturaJson);
+
             if (file.isEmpty()) {
                 response.put(MENSAJE, "El archivo no puede estar vacío");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -86,8 +91,14 @@ public class FacturaController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
-            FacturaRequest factura = new com.google.gson.Gson()
-                    .fromJson(facturaJson, FacturaRequest.class);
+            FacturaRequest factura;
+            try {
+                factura = objectMapper.readValue(facturaJson, FacturaRequest.class);
+            } catch (Exception e) {
+                log.error("Error parseando factura JSON", e);
+                response.put(MENSAJE, "Error parseando datos de factura");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
             Factura nuevoFactura = facturaService.saveWithImage(
                     factura,
                     file.getBytes(),
@@ -97,7 +108,35 @@ public class FacturaController {
             response.put(FACTURA, nuevoFactura);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            response.put(MENSAJE, "Error al guardar la factura con imagen");
+            log.error("Error al guardar factura con imagen", e);
+            response.put(MENSAJE, "Error al guardar la factura con imagen: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/facturas/{id}/image-url")
+    public ResponseEntity<Map<String, Object>> getFacturaImageUrl(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Factura factura = facturaService.findById(id)
+                    .orElseThrow(() -> new RecursoNoEncontradoException(
+                            "No existe la factura con el ID: " + id));
+
+            String imagePath = factura.getUrlImagen();
+            if (imagePath == null || imagePath.isEmpty()) {
+                response.put(MENSAJE, "La factura no tiene imagen asociada");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+
+            String signedUrl = facturaService.getSignedImageUrl(imagePath);
+            response.put("url", signedUrl);
+            return ResponseEntity.ok(response);
+        } catch (RecursoNoEncontradoException e) {
+            response.put(MENSAJE, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (Exception e) {
+            log.error("Error generando URL firmada", e);
+            response.put(MENSAJE, "Error al generar URL de imagen");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

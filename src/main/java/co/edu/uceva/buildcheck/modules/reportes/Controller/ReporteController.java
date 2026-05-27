@@ -60,73 +60,65 @@ public class ReporteController {
         List<Map<String, Object>> reportes = new ArrayList<>();
 
         for (Proyecto proyecto : proyectos) {
-            List<RolNombre> rolesPermitidos =
-                    List.of(
-                            RolNombre.ROLE_DIRECTOR_OBRA,
-                            RolNombre.ROLE_OWNER,
-                            RolNombre.ROLE_ADMIN
-                    );
+           List<RolNombre> rolesPermitidos =
+                List.of(
+                        RolNombre.ROLE_DIRECTOR_OBRA,
+                        RolNombre.ROLE_OWNER,
+                        RolNombre.ROLE_ADMIN
+                );
             // Buscar directores de obra con telegramChatId vinculado
             List<UsuarioProyecto> miembros =
                     usuarioProyectoRepository.findByProyectoAndRolProyectoIn(
                             proyecto, rolesPermitidos);
 
             List<String> chatIds = miembros.stream()
-                    .map(m -> m.getUsuario() != null ? m.getUsuario().getTelegramChatId() : null)
+                    .map(m -> m.getUsuario().getTelegramChatId())
                     .filter(id -> id != null && !id.isBlank())
                     .distinct()
                     .toList();
 
-            // Sin directores vinculados a Telegram → saltar proyecto rápido (Fail First)
-            if (chatIds.isEmpty()) {
-                continue;
-            }
+            // Sin directores vinculados a Telegram → saltar proyecto
+            if (chatIds.isEmpty()) continue;
 
             Long proyectoId = proyecto.getId();
 
-            // 2. Movimientos semana actual
+            // Movimientos semana actual
             List<Movimiento> movActual = movimientoService
                     .findByProyectoId(proyectoId).stream()
-                    .filter(m -> m.getFechaCreacion() != null
-                            && !m.getFechaCreacion().isBefore(desde)
+                    .filter(m -> !m.getFechaCreacion().isBefore(desde)
                             && !m.getFechaCreacion().isAfter(hasta))
                     .toList();
 
-            // 3. Facturas semana actual
+            // Facturas semana actual
             List<Factura> factActual = facturaService
                     .findByProyectoId(proyectoId).stream()
-                    .filter(f -> f.getFechaCreacion() != null
-                            && !f.getFechaCreacion().isBefore(desde)
+                    .filter(f -> !f.getFechaCreacion().isBefore(desde)
                             && !f.getFechaCreacion().isAfter(hasta))
                     .toList();
 
-            // 4. Facturas semana anterior (para variación)
+            // Facturas semana anterior (para variación)
             List<Factura> factAnterior = facturaService
                     .findByProyectoId(proyectoId).stream()
-                    .filter(f -> f.getFechaCreacion() != null
-                            && !f.getFechaCreacion().isBefore(desdeAnterior)
+                    .filter(f -> !f.getFechaCreacion().isBefore(desdeAnterior)
                             && f.getFechaCreacion().isBefore(desde))
                     .toList();
 
-            // 5. Totales (Evitando NullPointerException en sumas)
+            // Totales
             double totalActual = factActual.stream()
-                    .mapToDouble(f -> f.getValorTotal() != null ? f.getValorTotal() : 0.0)
+                    .mapToDouble(f -> f.getValorTotal() != null ? f.getValorTotal() : 0)
                     .sum();
             double totalAnterior = factAnterior.stream()
-                    .mapToDouble(f -> f.getValorTotal() != null ? f.getValorTotal() : 0.0)
+                    .mapToDouble(f -> f.getValorTotal() != null ? f.getValorTotal() : 0)
                     .sum();
 
-            // 6. Top 3 materiales más consumidos (SOLO SALIDAS)
-            // SOLUCIÓN AL ADVERTENCIA DE NULL SAFETY MEDIANTE LAMBDA EXPLICITA
+            // Top 3 materiales más consumidos (solo SALIDAs)
             Map<String, Double> consumo = new HashMap<>();
             movActual.stream()
                     .filter(m -> m.getTipoMovimiento() == TipoMovimientoNombre.SALIDA)
-                    .filter(m -> m.getMaterial() != null && m.getMaterial().getNombre() != null
-                            && m.getCantidad() != null)
                     .forEach(m -> consumo.merge(
                             m.getMaterial().getNombre(),
                             m.getCantidad(),
-                            (v1, v2) -> v1 + v2));
+                            Double::sum));
 
             List<Map<String, Object>> top3 = consumo.entrySet().stream()
                     .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
@@ -136,7 +128,6 @@ public class ReporteController {
                             "cantidad", e.getValue()))
                     .toList();
 
-            // 7. Estructurar el reporte del proyecto
             Map<String, Object> reporte = new HashMap<>();
             reporte.put("proyectoNombre", proyecto.getNombre());
             reporte.put("chatIds", chatIds);

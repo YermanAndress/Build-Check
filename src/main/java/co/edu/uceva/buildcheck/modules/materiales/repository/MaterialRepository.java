@@ -31,4 +31,6 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
         @Param("proyectoId") Long proyectoId,
         @Param("nombre") String nombre
     );
+
+    Optional<Material> findByNombreIgnoreCaseAndProyectoId(String nombre, Long proyectoId);
 }

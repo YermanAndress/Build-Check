@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/api/usuarios-service/refresh",
                                 "/api/usuarios-service/public-key")
                         .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios/telegram/*/proyecto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios-service/usuarios").permitAll()
                         .requestMatchers("/api/proyecto-service/proyectos/usuario/mis-proyectos").permitAll()

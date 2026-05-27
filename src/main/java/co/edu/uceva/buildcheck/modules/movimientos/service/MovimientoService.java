@@ -26,17 +26,21 @@ public class MovimientoService {
     private final IProyectoRepository proyectoRepository;
     private final MaterialRepository materialRepository;
     private final UsuarioRepository usuarioRepository;
+    private final TelegramService telegramService;
 
     @Autowired
     public MovimientoService(
             MovimientoRepository movimientoRepository,
             IProyectoRepository proyectoRepository,
             MaterialRepository materialRepository,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository,
+            TelegramService telegramService
+    ) {
         this.movimientoRepository = movimientoRepository;
         this.proyectoRepository = proyectoRepository;
         this.materialRepository = materialRepository;
         this.usuarioRepository = usuarioRepository;
+        this.telegramService = telegramService;
     }
 
     @Transactional
@@ -73,31 +77,58 @@ public class MovimientoService {
         return movimientoRepository.save(nuevoMovimiento);
     }
 
-    private void actualizarStockMaterial(
-            Material material,
-            Movimiento movimiento) {
-        double cantidad = movimiento.getCantidad();
+private void actualizarStockMaterial(
+        Material material,
+        Movimiento movimiento
+) {
 
-        if (movimiento.getTipoMovimiento() == TipoMovimientoNombre.ENTRADA) {
-            // 1. Aumentamos el stock actual
-            material.setStockActual(material.getStockActual() + cantidad);
+    double cantidad = movimiento.getCantidad();
 
-            // 2. ACTUALIZACIÓN DINÁMICA: El nuevo 100% es el stock actual tras la entrada
-            material.setStockReferencia(material.getStockActual());
-        } else if (movimiento.getTipoMovimiento() == TipoMovimientoNombre.SALIDA) {
-            if (material.getStockActual() < cantidad) {
-                throw new IllegalStateException("Stock insuficiente.");
-            }
-            material.setStockActual(material.getStockActual() - cantidad);
+    if (movimiento.getTipoMovimiento()
+            == TipoMovimientoNombre.ENTRADA) {
 
-            // Comparamos el actual contra el 25% de la última referencia (bodega llena)
-            double stockCritico = material.getStockReferencia() * 0.25;
+        material.setStockActual(
+                material.getStockActual() + cantidad
+        );
 
-            if (material.getStockActual() <= stockCritico) {
-            }
-        }
-        materialRepository.save(material);
+        material.setStockReferencia(
+                material.getStockActual()
+        );
     }
+
+    else if (movimiento.getTipoMovimiento()
+            == TipoMovimientoNombre.SALIDA) {
+
+        if (material.getStockActual() < cantidad) {
+            throw new IllegalStateException(
+                    "Stock insuficiente."
+            );
+        }
+
+        material.setStockActual(
+                material.getStockActual() - cantidad
+        );
+
+        double stockCritico =
+                material.getStockReferencia() * 0.25;
+
+        if (material.getStockActual()
+                <= stockCritico) {
+
+            telegramService.enviarAlertaStockBajo(
+                    movimiento.getProyecto().getId(),
+                    movimiento.getProyecto().getNombre(),
+                    material.getNombre(),
+                    material.getStockActual(),
+                    material.getStockReferencia(),
+                    material.getUnidadMedida().toString(),
+                    "El material alcanzó nivel crítico."
+            );
+        }
+    }
+
+    materialRepository.save(material);
+}
 
     @Transactional
     public void delete(Movimiento movimiento) {

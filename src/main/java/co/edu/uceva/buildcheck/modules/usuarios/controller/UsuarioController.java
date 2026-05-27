@@ -332,56 +332,82 @@ public class UsuarioController {
         ));
     }
 
-        @GetMapping("/usuarios/telegram/{chatId}")
-        public ResponseEntity<?> getByChatId(
-            @PathVariable String chatId){
-
-                List<Usuario> usuarios =
-            usuarioRepository.findByTelegramChatId(chatId);
-
+    @GetMapping("/usuarios/telegram/{chatId}")
+public ResponseEntity<?> getByChatId(@PathVariable String chatId) {
+    List<Usuario> usuarios = usuarioRepository.findByTelegramChatId(chatId);
     if (usuarios.isEmpty()) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of(
-                    "error",
-                    "Usuario no encontrado. Usa /login para vincular tu cuenta"
-                ));
+                .body(Map.of("error", "Usuario no encontrado. Usa /login para vincular tu cuenta"));
     }
 
-    List<Map<String, Object>> resultado =
-            new ArrayList<>();
+    List<Map<String, Object>> resultado = new ArrayList<>();
 
     for (Usuario usuario : usuarios) {
-
-        List<UsuarioProyecto> proyectos =
-                usuarioProyectoRepository
-                        .findByUsuarioId(usuario.getId());
-
+        List<UsuarioProyecto> proyectos = usuarioProyectoRepository.findByUsuarioId(usuario.getId());
+        List<Proyecto> proyectosOwner = proyectoRepository.findByUsuarioPropietario_Id(usuario.getId());
         if (proyectos != null && !proyectos.isEmpty()) {
-
-            UsuarioProyecto up = proyectos.get(0);
-
-            Long proyectoId =
-                    up.getProyecto().getId();
-
-            String accessToken =
-                    jwt.generarToken(
-                            usuario.getCorreo(),
-                            proyectoId,
-                            up.getRolProyecto());
-
-            resultado.add(Map.of(
-                    "usuarioId", usuario.getId(),
-                    "correo", usuario.getCorreo(),
-                    "proyectoId", proyectoId,
-                    "nombreProyecto", up.getProyecto().getNombre(),
-                    "rolProyecto",
-                    up.getRolProyecto().name(),
-                    "accessToken",
-                    accessToken
-            ));
+            for (UsuarioProyecto up : proyectos) {
+                Long proyectoId = up.getProyecto().getId();
+                String accessToken = jwt.generarToken(usuario.getCorreo(), proyectoId, up.getRolProyecto());
+                Map<String, Object> item = new HashMap<>();
+                item.put("usuarioId", usuario.getId());
+                item.put("correo", usuario.getCorreo());
+                item.put("proyectoId", proyectoId);
+                item.put("nombreProyecto", up.getProyecto().getNombre());
+                item.put("rolProyecto", up.getRolProyecto().name());
+                item.put("accessToken", accessToken);
+                item.put("esActivo", proyectoId.equals(usuario.getTelegramProyectoActivo()));
+                resultado.add(item);
+            }
+        }
+        if (proyectosOwner != null && !proyectosOwner.isEmpty()) {
+            for(Proyecto proyecto : proyectosOwner){
+                boolean yaExiste = resultado.stream().anyMatch(p -> p.get("proyectoId").equals(proyecto.getId()));
+                if (!yaExiste) {
+                    String accessToken = jwt.generarToken(
+                        usuario.getCorreo(),
+                        proyecto.getId(),
+                        RolNombre.ROLE_OWNER
+                    );
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("usuarioId", usuario.getId());
+                    item.put("correo", usuario.getCorreo());
+                    item.put("proyectoId", proyecto.getId());
+                    item.put("nombreProyecto", proyecto.getNombre());
+                    item.put("rolProyecto", "ROLE_OWNER");
+                    item.put("accessToken", accessToken);
+                    item.put("esActivo", proyecto.getId().equals(usuario.getTelegramProyectoActivo()));
+                    resultado.add(item);
+                }
+            }
         }
     }
 
-    return ResponseEntity.ok(resultado);
+    if (resultado.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "El usuario no tiene proyectos asignados."));
     }
+
+    // ✅ Proyecto activo primero
+    resultado.sort((a, b) -> Boolean.compare(
+        (Boolean) b.get("esActivo"),
+        (Boolean) a.get("esActivo")
+    ));
+
+    return ResponseEntity.ok(resultado);
+}
+
+    @PostMapping("usuarios/telegram/{chatId}/proyecto")
+    public ResponseEntity<?> setProyectoActivoBot(
+        @PathVariable String chatId,
+        @RequestBody Map<String, Long> body) {
+            List<Usuario> usuarios = usuarioRepository.findByTelegramChatId(chatId);
+            if (usuarios.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Usuario usuario = usuarios.get(0);
+            usuario.setTelegramProyectoActivo(body.get("proyectoId"));
+            usuarioRepository.save(usuario);
+            return ResponseEntity.ok(Map.of("ok", true));
+        }
 }

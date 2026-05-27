@@ -138,6 +138,7 @@ public class FacturaService {
             movimiento.setMaterial(material);
             movimiento.setProyecto(proyecto);
             movimiento.setUsuario(usuario);
+            movimiento.setFactura(factura);
             movimiento.setFechaCreacion(LocalDateTime.now());
 
             movimientoRepository.save(movimiento);
@@ -154,6 +155,10 @@ public class FacturaService {
         String urlImagen = supabaseStorageService.uploadImage(imageData, fileName);
         request.setUrlImagen(urlImagen);
         return save(request);
+    }
+
+    public String getSignedImageUrl(String imagePath) throws Exception {
+        return supabaseStorageService.getSignedUrl(imagePath);
     }
 
     /**

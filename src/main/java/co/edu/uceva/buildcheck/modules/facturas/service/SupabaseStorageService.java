@@ -8,6 +8,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -27,6 +29,7 @@ public class SupabaseStorageService {
     private String bucket;
 
     private static final int TIMEOUT_SECONDS = 15;
+    private static final Gson gson = new Gson();
 
     public String uploadImage(byte[] imageData, String fileName) throws IOException {
         log.info("Iniciando carga de imagen a Supabase Storage. Archivo: {}", fileName);
@@ -53,14 +56,12 @@ public class SupabaseStorageService {
                 log.error("Error al subir imagen a Supabase. Status: {}. Body: {}", response.code(), response.body());
                 throw new IOException("Supabase upload error: " + response.code());
             }
-
-            String signedUrl = generateSignedUrl(uploadPath);
-            log.info("Imagen cargada exitosamente. URL: {}", signedUrl);
-            return signedUrl;
+            log.info("Imagen cargada exitosamente. Path: {}", uploadPath);
+            return uploadPath;
         }
     }
 
-    private String generateSignedUrl(String path) throws IOException {
+    public String getSignedUrl(String path) throws IOException {
         log.info("Generando URL firmada para: {}", path);
 
         String expiryUrl = supabaseUrl + "/storage/v1/object/sign/" + bucket + "/" + path;
@@ -89,10 +90,21 @@ public class SupabaseStorageService {
 
             String responseBody = response.body().string();
             log.debug("Respuesta de URL firmada: {}", responseBody);
-            
-            // Aquí podrías parsear el JSON para obtener la URL exacta
-            // Por ahora, retornamos una URL pública (para desarrollo)
-            return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + path;
+
+            JsonObject json = gson.fromJson(responseBody, JsonObject.class);
+            String signedUrl = json.has("signedURL")
+                    ? json.get("signedURL").getAsString()
+                    : null;
+
+            if (signedUrl == null || signedUrl.isEmpty()) {
+                throw new IOException("Signed URL missing in response");
+            }
+
+            if (signedUrl.startsWith("http")) {
+                return signedUrl;
+            }
+
+            return supabaseUrl + signedUrl;
         }
     }
 

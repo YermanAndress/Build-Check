@@ -44,6 +44,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // permitir preflight CORS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Endpoints públicos
                         .requestMatchers(
                                 "/api/usuarios-service/login",

@@ -23,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/facturas-service")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j
 public class FacturaController {
